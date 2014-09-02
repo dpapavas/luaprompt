@@ -1,0 +1,90 @@
+luaprompt
+
+Copyright (C) 2012-2014 Dimitris Papavasileiou <dpapavas@gmail.com>
+
+luaprompt is a simple library that provides a Lua command prompt
+that can be embedded in a host application.  It's meant for
+applications that use Lua as a configuration or interface language and
+can therefore benefit from an interactive prompt for debugging or
+regular use.
+
+luaprompt features:
+
+* Readline-based input with history and completion:  In particular all
+  keywords, global variables and table accesses (with string or
+  integer keys) can be completed in addition to readline's standard
+  file completion.
+
+* Persistent command history (retained across sessions).
+
+* Proper value pretty-printing for interactive use: When an expression
+  is entered at the prompt all returned values are printed (prepending
+  with an equal sign is not required).  Values are printed in a
+  descriptive way that tries to be as readable as possible.  The
+  formatting tries to mimic Lua code (this is done to minimize
+  ambiguities, no guarantees are made that it is valid code).
+
+* Color highlighting of error messages and variable printouts.
+
+Embedded Usage
+==============
+
+To embed luaprompt into a host application simply compile and link
+prompt.c with your sources.  A POSIX environment is assumed and
+readline is required for proper command line editing.  If readline is
+provided you should define the macros HAVE_LIBREADLINE and either
+HAVE_READLINE_READLINE_H or HAVE_READLINE_H depending on where your
+readline's header files are installed.  Similar macros are required
+for command line history support.  See the example Makefile for
+details.
+
+The API is very simple:
+
+void luap_enter (lua_State *L)
+Call this to begin an interactive session.  The session can be
+terminated with Ctrl-D.
+
+void luap_setname (lua_State *L, const char *name)
+Set the name of the application.  This is basically the chunk name
+displayed with error messages.  The default program name is "lua".
+
+void luap_setprompts (lua_State *L, const char *single, char *multi)
+Provide two prompts, one for single-line and one for multi-line
+input. The defaults prompts are "> " and ">> ".
+
+void luap_sethistory (lua_State *L, const char *file) Set the file to
+be used to perist the command history across sessions.  If this
+function isn't called the command history is lost on session exit.
+Note that the provided name is used as-is, that is, it is not expanded
+as if it was entered at the shell so you cannot use a string of the
+form "~/.lua_history" for examle.
+
+void luap_setcolor (lua_State *L, int enable)
+Setting enable to zero disables color output.  Color output is enabled
+by default if the output has not been redirected to a file or pipe.
+
+In addition to the above the following calls, which are meant for
+internal use can be used by the host applicaton as well if required.
+
+char *luap_describe (lua_State *L, int index)
+Returns a string with a human-readable serialization of the value at
+the specified index.
+
+int luap_call (lua_State *L, int n)
+Calls a function with n arguments and provides a stack trace on error.
+This equivalent to calling lua_pcall with LUA_MULTRET.
+
+Standalone usage
+================
+
+Although luaprompt is meant for embedded use a standalone
+interpreter has been written which tries to mimic the standard lua
+interepreter as much as possible (currently only the -E flag is not
+supported) while providing the extra set of features described above.
+Some tweaking of the makefile may be required to get it to build.
+
+License
+=======
+
+luaprompt is released under the terms and conditions of the MIT/X11
+license.

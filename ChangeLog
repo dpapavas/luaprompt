@@ -1,0 +1,34 @@
+2012-04-07  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* First public release.
+
+2012-04-16  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.1.2 with the following changes:
+	  - Fixed a bug preventing multi-line input with Lua 5.1.
+	  - Pretty-printing of userdata honours the __tostring
+	    metamethod.
+
+2012-06-30  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.2 with the following changes:
+	  - Fixed a couple of completion and pretty-printing glitches.
+	  - Added support for completing file names.
+
+2013-08-14  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.3 with the following changes:
+	  - Changed pretty-printing to always honour __tostring
+	    metamethods.
+	  - Modified the completion generator to return file name
+	    completion only if nothing else matches.
+
+2014-09-02  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.3.1 with the following changes:
+	  - Fixed numerous memory leaks as well as a minor off-by-one
+	    bug in the file name completion generator.  Sources now
+	    hold up to scrutiny by Valgrind.
+	  - Removed the use of wordexp() to expand the path to the
+	    history file.  Its use probably caused more problems than
+	    it solved due to its unavailability on some platforms.
