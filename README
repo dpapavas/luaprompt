@@ -83,6 +83,13 @@ interepreter as much as possible (currently only the -E flag is not
 supported) while providing the extra set of features described above.
 Some tweaking of the makefile may be required to get it to build.
 
+Configuration
+=============
+
+Some aspects of luaprompt's behavior are configurable at compile time.
+Please consult the supplied Makefile for the available options and
+their explanations.
+
 License
 =======
 

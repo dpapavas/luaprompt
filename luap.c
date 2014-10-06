@@ -46,14 +46,15 @@
 #define COPYRIGHT LUA_COPYRIGHT
 #endif
 
-#define LUAP_VERSION "0.3.1"
+#define LUAP_VERSION "0.4"
 
 static int interactive = 0, colorize = 1;
 
 static void greet()
 {
     fprintf(stdout, "%s" COPYRIGHT "\n%s"
-            "luap " LUAP_VERSION " Copyright (C) 2013 Dimitris Papavasiliou\n",
+            "luap " LUAP_VERSION " Copyright (C) 2012-2014 "
+            "Dimitris Papavasiliou\n",
             colorize ? "\033[1m" : "",
             colorize ? "\033[0m" : "");
 }

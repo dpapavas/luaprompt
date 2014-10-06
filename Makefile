@@ -9,6 +9,25 @@ CFLAGS= -g -Wall -Wextra -Wno-unused-parameter -I.. -DHAVE_ASPRINTF
 CFLAGS+= -DHAVE_LIBREADLINE -DHAVE_READLINE_READLINE_H -DHAVE_READLINE_HISTORY -DHAVE_READLINE_HISTORY_H
 CFLAGS+= -D_GNU_SOURCE
 
+# Uncomment the following line and customize the prefix as desired to
+# keep the auto-completer from considering certain table keys (and
+# hence global variables) for completion.
+
+# CFLAGS+= '-DHIDDEN_KEY_PREFIX="_"'
+
+# When completing certain kinds of values, such as tables or
+# functions, the completer also appends certain useful suffixes such
+# as '.', '[' or '('. Normally these are appended only when the
+# value's name has already been fully entered, or previously fully
+# completed, so that one can still complete the name without the
+# suffix.  In order to append the suffix one then only has to press
+# the completion key one more time.
+#
+# Uncomment the following line to make the completer always append
+# these suffixes.
+
+# CFLAGS+= -DALWAYS_APPEND_SUFFIXES
+
 LDFLAGS=-lreadline -lhistory
 
 INSTALL=/usr/bin/install

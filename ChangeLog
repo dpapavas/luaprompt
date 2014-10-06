@@ -32,3 +32,21 @@
 	  - Removed the use of wordexp() to expand the path to the
 	    history file.  Its use probably caused more problems than
 	    it solved due to its unavailability on some platforms.
+
+2014-10-06  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.4 with the following improvements:
+
+	  - The auto-completer now adds certain useful suffixes to
+	    completed symbol names depending on their type.  An opening
+	    parenthesis is added to function values and either a dot
+	    or an opening bracket is added to table values.
+
+	  - Symbol names can be excluded from consideration during
+	    completion if they start with a configurable prefix.  This
+	    allows, for example, variables starting with an underscore
+	    to be treated as "hidden".
+
+	  - Multi-line statement handling has been improved by treating
+	    the whole statement as a single line, when browsing through
+	    the	command history.
