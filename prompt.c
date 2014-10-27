@@ -1132,6 +1132,7 @@ void luap_enter(lua_State *L)
         int status;
 
         if (*line == '\0') {
+            free(line);
             continue;
         }
 
