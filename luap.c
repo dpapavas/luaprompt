@@ -46,7 +46,7 @@
 #define COPYRIGHT LUA_COPYRIGHT
 #endif
 
-#define LUAP_VERSION "0.4"
+#define LUAP_VERSION "0.5"
 
 static int interactive = 0, colorize = 1;
 

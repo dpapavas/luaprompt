@@ -9,6 +9,14 @@ CFLAGS= -g -Wall -Wextra -Wno-unused-parameter -I.. -DHAVE_ASPRINTF
 CFLAGS+= -DHAVE_LIBREADLINE -DHAVE_READLINE_READLINE_H -DHAVE_READLINE_HISTORY -DHAVE_READLINE_HISTORY_H
 CFLAGS+= -D_GNU_SOURCE
 
+# Comment out the following to suppress completion of certain kinds of
+# symbols.
+
+CFLAGS+= -DCOMPLETE_KEYWORDS	# Keywords such as for, while, etc.
+CFLAGS+= -DCOMPLETE_MODULES     # Module names.
+CFLAGS+= -DCOMPLETE_TABLE_KEYS	# Table keys, including global variables.
+CFLAGS+= -DCOMPLETE_FILE_NAMES	# File names.
+
 # Uncomment the following line and customize the prefix as desired to
 # keep the auto-completer from considering certain table keys (and
 # hence global variables) for completion.
@@ -27,6 +35,23 @@ CFLAGS+= -D_GNU_SOURCE
 # these suffixes.
 
 # CFLAGS+= -DALWAYS_APPEND_SUFFIXES
+
+# The autocompleter can complete module names as if they were already
+# require'd and available as a global variable.  Once the module name
+# is fully completed a further tab press loads the module and exports
+# it as a global variable so that all further tab-completions now
+# apply to the module's table.
+#
+# Uncomment the following line to disable this functionality.  Module
+# names will then only be completed inside strings (for use with
+# require).
+
+# CFLAGS+= -DNO_MODULE_LOAD
+
+# Uncomment to make the auto-completer ask for confirmation before
+# loading a module.
+
+# CFLAGS+= -DCONFIRM_MODULE_LOAD
 
 LDFLAGS=-lreadline -lhistory
 

@@ -2,10 +2,13 @@ luaprompt
 
 Copyright (C) 2012-2014 Dimitris Papavasileiou <dpapavas@gmail.com>
 
-luaprompt is a simple library that provides a Lua command prompt
-that can be embedded in a host application.  It's meant for
-applications that use Lua as a configuration or interface language and
-can therefore benefit from an interactive prompt for debugging or
+luaprompt is both an interactive Lua prompt that can be used instead
+of the official interpreter, as well as a simple library that provides
+a Lua command prompt that can be embedded in a host application.  As a
+standalone interpreter it provides many conveniences that are missing
+from the official Lua interpreter.  As an embedded prompt, it's meant
+for applications that use Lua as a configuration or interface language
+and can therefore benefit from an interactive prompt for debugging or
 regular use.
 
 luaprompt features:

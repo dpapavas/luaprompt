@@ -50,3 +50,19 @@
 	  - Multi-line statement handling has been improved by treating
 	    the whole statement as a single line, when browsing through
 	    the	command history.
+
+2014-10-30  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.5 with the following improvements:
+
+	  - The auto-completer now completes module names based on
+	    package.preload, pacakge.path and package.cpath.  Module
+	    names are either completed within strings for use with
+	    require or as a global variable, as if the module was
+	    already loaded.  In the latter case the tab completer also
+	    loads the module once it's fully completed and exports it
+	    as a global variable so that further completions apply to
+	    the module's table.
+
+	  - Completion can be disabled individually for certain kinds
+	    of symbols via compile-time switches.
