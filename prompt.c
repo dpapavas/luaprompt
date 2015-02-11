@@ -1287,6 +1287,11 @@ static int describe_stack (int count, int key)
 int luap_call (lua_State *L, int n) {
     int h, status;
 
+    /* We can wind up here before reaching luap_enter, so this is
+     * needed. */
+
+    _L = L;
+
     /* Push the error handler onto the stack. */
 
     h = lua_gettop(L) - n;
