@@ -518,7 +518,8 @@ static char *module_completions (const char *text, int state)
              s = t + 1, i += 1) {
 
             t = strchr(s, '\n');
-            strings[i] = lua_pushlstring(_L, s, t - s);
+            lua_pushlstring(_L, s, t - s);
+            strings[i] = lua_tostring(_L, -1);
         }
 
         lua_remove(_L, -4);
