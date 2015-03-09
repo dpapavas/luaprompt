@@ -104,7 +104,7 @@ static char *logfile;
 
 #define print_output(...) fprintf (stdout, __VA_ARGS__), fflush(stdout)
 #define print_error(...) fprintf (stderr, __VA_ARGS__), fflush(stderr)
-#define absolute(_L, _i) (_i < 0 ? lua_gettop (_L) + _i + 1 : _i)
+#define absolute(luapL, _i) (_i < 0 ? lua_gettop (luapL) + _i + 1 : _i)
 
 static int colorize = 1;
 static const char *colors[] = {"\033[0m",
@@ -125,7 +125,7 @@ static const char *colors[] = {"\033[0m",
 #define EOF_MARKER "<eof>"
 #endif
 
-static lua_State *_L;
+static lua_State *luapL;
 static int initialized = 0;
 static char *chunkname, *prompts[2], *buffer = NULL;
 
@@ -181,7 +181,7 @@ static char *table_key_completions (const char *text, int state)
     static int h;
 
     if (state == 0) {
-        h = lua_gettop(_L);
+        h = lua_gettop(luapL);
 
         /* Scan to the beginning of the to-be-completed token. */
 
@@ -196,64 +196,64 @@ static char *table_key_completions (const char *text, int state)
             /* Get the iterable value, the keys of which we wish to
              * complete. */
 
-            lua_pushliteral (_L, "return ");
-            lua_pushlstring (_L, text, token - text - 1);
-            lua_concat (_L, 2);
+            lua_pushliteral (luapL, "return ");
+            lua_pushlstring (luapL, text, token - text - 1);
+            lua_concat (luapL, 2);
 
-            if (luaL_loadstring (_L, lua_tostring (_L, -1)) ||
-                lua_pcall (_L, 0, 1, 0) ||
-                (lua_type (_L, -1) != LUA_TUSERDATA &&
-                 lua_type (_L, -1) != LUA_TTABLE)) {
+            if (luaL_loadstring (luapL, lua_tostring (luapL, -1)) ||
+                lua_pcall (luapL, 0, 1, 0) ||
+                (lua_type (luapL, -1) != LUA_TUSERDATA &&
+                 lua_type (luapL, -1) != LUA_TTABLE)) {
 
-                lua_settop(_L, h);
+                lua_settop(luapL, h);
                 return NULL;
             }
         } else {
             oper = 0;
             token = text;
 
-            lua_pushglobaltable(_L);
+            lua_pushglobaltable(luapL);
         }
 
         /* Call the standard pairs function. */
 
-        lua_getglobal (_L, "pairs");
-        lua_insert (_L, -2);
-        if(lua_type (_L, -2) != LUA_TFUNCTION ||
-           lua_pcall (_L, 1, 3, 0)) {
+        lua_getglobal (luapL, "pairs");
+        lua_insert (luapL, -2);
+        if(lua_type (luapL, -2) != LUA_TFUNCTION ||
+           lua_pcall (luapL, 1, 3, 0)) {
 
-            lua_settop(_L, h);
+            lua_settop(luapL, h);
             return NULL;
         }
     }
 
     /* Iterate the table/userdata and generate matches. */
 
-    while (lua_pushvalue(_L, -3), lua_insert (_L, -3),
-           lua_pushvalue(_L, -2), lua_insert (_L, -4),
-           lua_pcall (_L, 2, 2, 0) == 0) {
+    while (lua_pushvalue(luapL, -3), lua_insert (luapL, -3),
+           lua_pushvalue(luapL, -2), lua_insert (luapL, -4),
+           lua_pcall (luapL, 2, 2, 0) == 0) {
         char *candidate;
         size_t l, m;
         int suppress, type, keytype;
 
-        if (lua_isnil(_L, -2)) {
-            lua_settop(_L, h);
+        if (lua_isnil(luapL, -2)) {
+            lua_settop(luapL, h);
             return NULL;
         }
 
         /* Make some notes about the value we're completing.  We'll
          * make use of them later on. */
 
-        type = lua_type (_L, -1);
+        type = lua_type (luapL, -1);
         suppress = (type == LUA_TTABLE || type == LUA_TUSERDATA ||
                    type == LUA_TFUNCTION);
 
         keytype = LUA_TNIL;
         if (type == LUA_TTABLE) {
-            lua_pushnil(_L);
-            if (lua_next(_L, -2)) {
-                keytype = lua_type (_L, -2);
-                lua_pop (_L, 2);
+            lua_pushnil(luapL);
+            if (lua_next(luapL, -2)) {
+                keytype = lua_type (luapL, -2);
+                lua_pop (luapL, 2);
             } else {
                 /* There are no keys in the table so we won't want to
                  * index it.  Add a space. */
@@ -264,21 +264,21 @@ static char *table_key_completions (const char *text, int state)
 
         /* Pop the value, keep the key. */
 
-        lua_pop (_L, 1);
+        lua_pop (luapL, 1);
 
         /* We're mainly interested in strings at this point but if
          * we're completing for the table[key] syntax we consider
          * numeric keys too. */
 
-        if (lua_type (_L, -1) == LUA_TSTRING ||
-            (oper == '[' && lua_type (_L, -1) == LUA_TNUMBER)) {
+        if (lua_type (luapL, -1) == LUA_TSTRING ||
+            (oper == '[' && lua_type (luapL, -1) == LUA_TNUMBER)) {
             if (oper == '[') {
-                if (lua_type (_L, -1) == LUA_TNUMBER) {
+                if (lua_type (luapL, -1) == LUA_TNUMBER) {
                     lua_Number n;
                     int i;
 
-                    n = lua_tonumber (_L, -1);
-                    i = lua_tointeger (_L, -1);
+                    n = lua_tonumber (luapL, -1);
+                    i = lua_tointeger (luapL, -1);
 
                     /* If this isn't an integer key, we may as well
                      * forget about it. */
@@ -297,10 +297,10 @@ static char *table_key_completions (const char *text, int state)
                     }
 
                     l = asprintf (&candidate, "%c%s%c]",
-                                  q, lua_tostring (_L, -1), q);
+                                  q, lua_tostring (luapL, -1), q);
                 }
             } else {
-                candidate = strdup((char *)lua_tolstring (_L, -1, &l));
+                candidate = strdup((char *)lua_tolstring (luapL, -1, &l));
             }
 
             m = strlen(token);
@@ -363,7 +363,7 @@ static char *table_key_completions (const char *text, int state)
         }
     }
 
-    lua_settop(_L, h);
+    lua_settop(luapL, h);
     return NULL;
 }
 #endif
@@ -389,51 +389,51 @@ static char *module_completions (const char *text, int state)
         }
 #endif
 
-        lua_newtable(_L);
-        h = lua_gettop(_L);
+        lua_newtable(luapL);
+        h = lua_gettop(luapL);
 
         /* Try to load the input as a module. */
 
-        lua_getglobal(_L, "require");
+        lua_getglobal(luapL, "require");
 
-        if (!lua_isfunction (_L, -1)) {
-            lua_settop(_L, h - 1);
+        if (!lua_isfunction (luapL, -1)) {
+            lua_settop(luapL, h - 1);
             return NULL;
         }
 
-        lua_pushliteral(_L, "package");
+        lua_pushliteral(luapL, "package");
 
-        if(lua_pcall(_L, 1, 1, 0) != LUA_OK) {
-            lua_settop(_L, h - 1);
+        if(lua_pcall(luapL, 1, 1, 0) != LUA_OK) {
+            lua_settop(luapL, h - 1);
             return NULL;
         }
 
         if (!ondot && !quoted && text[0] != '\0') {
-            lua_getfield(_L, -1, "loaded");
-            lua_pushstring(_L, text);
-            lua_gettable(_L, -2);
+            lua_getfield(luapL, -1, "loaded");
+            lua_pushstring(luapL, text);
+            lua_gettable(luapL, -2);
 
             /* If it's not an already loaded module, check whether the
              * input is an available module by searching for it and/or
              * trying to load it. */
 
-            if (!lua_toboolean(_L, -1)) {
+            if (!lua_toboolean(luapL, -1)) {
                 int load = 1;
 
-                lua_pop(_L, 2);
+                lua_pop(luapL, 2);
 
 #ifdef CONFIRM_MODULE_LOAD
                 /* Look for the module as require would and ask the
                  * user whether it should be loaded or not. */
 
-                lua_getfield(_L, -1, "searchers");
-                lua_pushnil(_L);
+                lua_getfield(luapL, -1, "searchers");
+                lua_pushnil(luapL);
 
-                while((load = lua_next(_L, -2))) {
-                    lua_pushstring(_L, text);
-                    lua_call(_L, 1, 1);
+                while((load = lua_next(luapL, -2))) {
+                    lua_pushstring(luapL, text);
+                    lua_call(luapL, 1, 1);
 
-                    if (lua_isfunction(_L, -1)) {
+                    if (lua_isfunction(luapL, -1)) {
                         char c;
 
                         print_output ("\nLoad module '%s' (y or n)", text);
@@ -441,7 +441,7 @@ static char *module_completions (const char *text, int state)
                         while ((c = tolower(rl_read_key())) != 'y' && c != 'n');
 
                         if (c == 'y') {
-                            lua_pop(_L, 3);
+                            lua_pop(luapL, 3);
                             break;
                         } else {
                             print_output ("\n");
@@ -452,22 +452,22 @@ static char *module_completions (const char *text, int state)
                              * asking the user againg if the tab key
                              * is pressed repeatedly. */
 
-                            lua_settop(_L, h);
+                            lua_settop(luapL, h);
                             return strdup(text);
                         }
                     }
 
-                    lua_pop(_L, 1);
+                    lua_pop(luapL, 1);
                 }
 #endif
 
                 /* Load the model if needed. */
 
                 if (load) {
-                    lua_pushfstring (_L, "%s=require(\"%s\")", text, text);
+                    lua_pushfstring (luapL, "%s=require(\"%s\")", text, text);
 
-                    if (luaL_loadstring (_L, lua_tostring (_L, -1)) == LUA_OK &&
-                        lua_pcall (_L, 0, 0, 0) == LUA_OK) {
+                    if (luaL_loadstring (luapL, lua_tostring (luapL, -1)) == LUA_OK &&
+                        lua_pcall (luapL, 0, 0, 0) == LUA_OK) {
 #ifdef CONFIRM_MODULE_LOAD
                         print_output (" ...loaded\n");
 #else
@@ -476,74 +476,74 @@ static char *module_completions (const char *text, int state)
 
                         rl_on_new_line ();
 
-                        lua_settop(_L, h - 1);
+                        lua_settop(luapL, h - 1);
                         return NULL;
                     }
                 }
             } else {
-                lua_settop(_L, h - 1);
+                lua_settop(luapL, h - 1);
                 return NULL;
             }
 
             /* Clean up but leave the package.table on the stack. */
 
-            lua_settop(_L, h + 1);
+            lua_settop(luapL, h + 1);
         }
 
         /* Look for matches in package.preload. */
 
-        lua_getfield(_L, -1, "preload");
+        lua_getfield(luapL, -1, "preload");
 
-        lua_pushnil(_L);
-        while(lua_next(_L, -2)) {
-            lua_pop(_L, 1);
+        lua_pushnil(luapL);
+        while(lua_next(luapL, -2)) {
+            lua_pop(luapL, 1);
 
-            if (lua_type(_L, -1) == LUA_TSTRING &&
-                    !strncmp(text + quoted, lua_tostring(_L, -1),
+            if (lua_type(luapL, -1) == LUA_TSTRING &&
+                    !strncmp(text + quoted, lua_tostring(luapL, -1),
                              strlen(text + quoted))) {
 
-                lua_pushstring(_L, text);
-                lua_rawseti (_L, h, (n += 1));
+                lua_pushstring(luapL, text);
+                lua_rawseti (luapL, h, (n += 1));
             }
         }
 
-        lua_pop(_L, 1);
+        lua_pop(luapL, 1);
 
         /* Get the configuration (directory, path separators, module
          * name wildcard). */
 
-        lua_getfield(_L, -1, "config");
-        for (s = (char *)lua_tostring(_L, -1), i = 0;
+        lua_getfield(luapL, -1, "config");
+        for (s = (char *)lua_tostring(luapL, -1), i = 0;
              i < 3;
              s = t + 1, i += 1) {
 
             t = strchr(s, '\n');
-            lua_pushlstring(_L, s, t - s);
-            strings[i] = lua_tostring(_L, -1);
+            lua_pushlstring(luapL, s, t - s);
+            strings[i] = lua_tostring(luapL, -1);
         }
 
-        lua_remove(_L, -4);
+        lua_remove(luapL, -4);
 
         /* Get the path and cpath */
 
-        lua_getfield(_L, -4, "path");
-        lua_pushstring(_L, strings[1]);
-        lua_getfield(_L, -6, "cpath");
-        lua_pushstring(_L, strings[1]);
-        lua_concat(_L, 4);
+        lua_getfield(luapL, -4, "path");
+        lua_pushstring(luapL, strings[1]);
+        lua_getfield(luapL, -6, "cpath");
+        lua_pushstring(luapL, strings[1]);
+        lua_concat(luapL, 4);
 
         /* Synthesize the pattern. */
 
         if (hasdot) {
-            luaL_gsub(_L, text + quoted, ".", strings[0]);
+            luaL_gsub(luapL, text + quoted, ".", strings[0]);
         } else {
-            lua_pushstring(_L, text + quoted);
+            lua_pushstring(luapL, text + quoted);
         }
 
-        lua_pushliteral(_L, "*");
-        lua_concat(_L, 2);
+        lua_pushliteral(luapL, "*");
+        lua_concat(luapL, 2);
 
-        for (b = d = lua_tostring(_L, -2) ; d ; b = d + 1)  {
+        for (b = d = lua_tostring(luapL, -2) ; d ; b = d + 1)  {
             size_t i;
 
             d = strstr(b, strings[1]);
@@ -553,33 +553,33 @@ static char *module_completions (const char *text, int state)
                 continue;
             }
 
-            lua_pushlstring(_L, b, d - b);
-            luaL_gsub(_L, lua_tostring(_L, -1), strings[2],
-                      lua_tostring(_L, -2));
+            lua_pushlstring(luapL, b, d - b);
+            luaL_gsub(luapL, lua_tostring(luapL, -1), strings[2],
+                      lua_tostring(luapL, -2));
 
-            glob(lua_tostring(_L, -1), 0, NULL, &vector);
+            glob(lua_tostring(luapL, -1), 0, NULL, &vector);
 
-            lua_pop(_L, 2);
+            lua_pop(luapL, 2);
 
             for (i = 0 ; i < vector.gl_pathc ; i += 1) {
                 char *p = vector.gl_pathv[i];
 
                 if (quoted) {
-                    lua_pushlstring(_L, text, 1);
+                    lua_pushlstring(luapL, text, 1);
                 }
 
-                lua_pushlstring(_L, p + (q - b), strlen(p) - (d - b) + 1);
+                lua_pushlstring(luapL, p + (q - b), strlen(p) - (d - b) + 1);
 
                 if (hasdot) {
-                    luaL_gsub(_L, lua_tostring(_L, -1), strings[0], ".");
-                    lua_replace(_L, -2);
+                    luaL_gsub(luapL, lua_tostring(luapL, -1), strings[0], ".");
+                    lua_replace(luapL, -2);
                 }
 
                 {
                     const char *s;
                     size_t l;
 
-                    s = lua_tolstring(_L, -1, &l);
+                    s = lua_tolstring(luapL, -1, &l);
 
                     /* Suppress submodules named init. */
 
@@ -587,14 +587,14 @@ static char *module_completions (const char *text, int state)
                         strcmp(s + l - sizeof("init") + 1, "init")) {
 
                         if (quoted) {
-                            lua_pushlstring(_L, text, 1);
+                            lua_pushlstring(luapL, text, 1);
 
-                            lua_concat(_L, 3);
+                            lua_concat(luapL, 3);
                         }
 
-                        lua_rawseti(_L, h, (n += 1));
+                        lua_rawseti(luapL, h, (n += 1));
                     } else {
-                        lua_pop(_L, 1 + quoted);
+                        lua_pop(luapL, 1 + quoted);
                     }
                 }
             }
@@ -602,29 +602,29 @@ static char *module_completions (const char *text, int state)
             globfree(&vector);
         }
 
-        lua_pop(_L, 6);
+        lua_pop(luapL, 6);
     }
 
     /* Return the next match from the table of matches. */
 
-    lua_pushnil(_L);
-    if (lua_next(_L, -2)) {
-        match = strdup(lua_tostring(_L, -1));
+    lua_pushnil(luapL);
+    if (lua_next(luapL, -2)) {
+        match = strdup(lua_tostring(luapL, -1));
 
         rl_completion_suppress_append = !(match[0] == '"' || match[0] == '\'');
 
         /* Pop the match. */
 
-        lua_pushnil(_L);
-        lua_rawseti(_L, -4, lua_tointeger(_L, -3));
+        lua_pushnil(luapL);
+        lua_rawseti(luapL, -4, lua_tointeger(luapL, -3));
 
         /* Pop key/value. */
 
-        lua_pop(_L, 2);
+        lua_pop(luapL, 2);
     } else {
         /* Pop the empty table. */
 
-        lua_pop(_L, 1);
+        lua_pop(luapL, 1);
     }
 
     return match;
@@ -739,7 +739,7 @@ static int traceback(lua_State *L)
     lua_pushstring(L, "\n\nStack trace:\n");
 
     for (i = 0 ; lua_getstack (L, i, &ar) ; i += 1) {
-        lua_getinfo(_L, "Snl", &ar);
+        lua_getinfo(luapL, "Snl", &ar);
 
         if (!strcmp (ar.what, "C")) {
             lua_pushfstring(L, "\t#%d %s[C]:%s in function '%s%s%s'\n",
@@ -769,14 +769,14 @@ static int execute ()
 {
     int i, h_0, h, status;
 
-    h_0 = lua_gettop(_L);
-    status = luap_call (_L, 0);
-    h = lua_gettop (_L) - h_0 + 1;
+    h_0 = lua_gettop(luapL);
+    status = luap_call (luapL, 0);
+    h = lua_gettop (luapL) - h_0 + 1;
 
     for (i = h ; i > 0 ; i -= 1) {
         const char *result;
 
-        result = luap_describe (_L, -i);
+        result = luap_describe (luapL, -i);
 
         if (result) {
             if (h == 1) {
@@ -788,7 +788,7 @@ static int execute ()
         }
     }
 
-    lua_settop (_L, h_0 - 1);
+    lua_settop (luapL, h_0 - 1);
 
     return status;
 }
@@ -1255,14 +1255,14 @@ static int describe_stack (int count, int key)
 
     print_output ("%s", COLOR(7));
 
-    h = lua_gettop (_L);
+    h = lua_gettop (luapL);
 
     if (count < 0) {
         i = h + count + 1;
 
         if (i > 0 && i <= h) {
             print_output ("\nValue at stack index %d(%d):\n%s%s",
-                          i, -h + i - 1, COLOR(3), luap_describe (_L, i));
+                          i, -h + i - 1, COLOR(3), luap_describe (luapL, i));
         } else {
             print_error ("Invalid stack index.\n");
         }
@@ -1270,7 +1270,7 @@ static int describe_stack (int count, int key)
         if (h > 0) {
             print_output ("\nThe stack contains %d values.\n", h);
             for (i = 1 ; i <= h ; i += 1) {
-                print_output ("\n%d(%d):\t%s", i, -h + i - 1, lua_typename(_L, lua_type(_L, i)));
+                print_output ("\n%d(%d):\t%s", i, -h + i - 1, lua_typename(luapL, lua_type(luapL, i)));
             }
         } else {
             print_output ("\nThe stack is empty.");
@@ -1291,7 +1291,7 @@ int luap_call (lua_State *L, int n) {
     /* We can wind up here before reaching luap_enter, so this is
      * needed. */
 
-    _L = L;
+    luapL = L;
 
     /* Push the error handler onto the stack. */
 
@@ -1357,7 +1357,7 @@ void luap_enter(lua_State *L)
     /* Save the state since it needs to be passed to some readline
      * callbacks. */
 
-    _L = L;
+    luapL = L;
 
     if (!initialized) {
 #ifdef HAVE_LIBREADLINE
@@ -1424,16 +1424,16 @@ void luap_enter(lua_State *L)
 
         l = asprintf (&prepended, "return %s", buffer);
 
-        if (luaL_loadbuffer(_L, prepended, l, chunkname) == LUA_OK) {
+        if (luaL_loadbuffer(luapL, prepended, l, chunkname) == LUA_OK) {
             execute();
 
             incomplete = 0;
         } else {
-            lua_pop (_L, 1);
+            lua_pop (luapL, 1);
 
             /* Try to execute the line as-is. */
 
-            status = luaL_loadbuffer(_L, buffer, s, chunkname);
+            status = luaL_loadbuffer(luapL, buffer, s, chunkname);
 
             incomplete = 0;
 
@@ -1442,7 +1442,7 @@ void luap_enter(lua_State *L)
                 const int k = sizeof(EOF_MARKER) / sizeof(char) - 1;
                 size_t n;
 
-                message = lua_tolstring (_L, -1, &n);
+                message = lua_tolstring (luapL, -1, &n);
 
                 /* If the error message mentions an unexpected eof
                  * then consider this a multi-line statement and wait
@@ -1453,15 +1453,15 @@ void luap_enter(lua_State *L)
                     !strncmp (message + n - k, EOF_MARKER, k)) {
                     incomplete = 1;
                 } else {
-                    print_error ("%s%s%s\n", COLOR(1), lua_tostring (_L, -1),
+                    print_error ("%s%s%s\n", COLOR(1), lua_tostring (luapL, -1),
                                  COLOR(0));
                 }
 
-                lua_pop (_L, 1);
+                lua_pop (luapL, 1);
             } else if (status == LUA_ERRMEM) {
-                print_error ("%s%s%s\n", COLOR(1), lua_tostring (_L, -1),
+                print_error ("%s%s%s\n", COLOR(1), lua_tostring (luapL, -1),
                              COLOR(0));
-                lua_pop (_L, 1);
+                lua_pop (luapL, 1);
             } else {
                 /* Try to execute the loaded chunk. */
 
