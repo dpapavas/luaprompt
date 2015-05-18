@@ -143,7 +143,28 @@ to "bin/luap". It can be invoked as "luap":
       setprompts = <function: 0x268d0a0>,
       sethistory = <function: 0x268d100>,
     }
-    >
+    > os.exit(0)
+
+    $ luap -h
+    Usage: luap [-e STMT] [-l NAME] [-p] [-v] [-i]
+        [-j cmd] [-O cmd] [-h] [<script>] ...
+
+    Lua command prompt
+
+    Arguments:
+       script                Lua script and its arguments
+
+    Options:
+       -e STMT               Execute string 'STMT'
+       -l NAME               Require library 'NAME'
+       -p                    Force plain, uncolored output
+       -v                    Print version information
+       -i                    Enter interactive mode
+       -j cmd                Perform LuaJIT control command
+       -O cmd                Control LuaJIT optimizations
+       -h, --help            Show this help message and exit.
+
+Options -j and -O are available only on LuaJIT.
 
 Configuration
 =============
