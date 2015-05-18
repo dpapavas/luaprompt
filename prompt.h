@@ -27,6 +27,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#define LUAP_VERSION "0.5"
+
 void luap_setprompts(lua_State *L, const char *single, const char *multi);
 void luap_sethistory(lua_State *L, const char *file);
 void luap_setname(lua_State *L, const char *name);

@@ -60,7 +60,7 @@ be used to perist the command history across sessions.  If this
 function isn't called the command history is lost on session exit.
 Note that the provided name is used as-is, that is, it is not expanded
 as if it was entered at the shell so you cannot use a string of the
-form "~/.lua_history" for examle.
+form "~/.lua_history" for example.
 
 void luap_setcolor (lua_State *L, int enable)
 Setting enable to zero disables color output.  Color output is enabled
@@ -85,6 +85,86 @@ interpreter has been written which tries to mimic the standard lua
 interepreter as much as possible (currently only the -E flag is not
 supported) while providing the extra set of features described above.
 Some tweaking of the makefile may be required to get it to build.
+
+Lua module
+==========
+
+There is Lua module providing luaprompt.
+
+Installation:
+
+    luarocks make
+
+Probably you have to provide paths to readline's headers and
+library files. For example:
+
+    luarocks make READLINE_INCDIR=/usr/include/readline \
+        READLINE_LIBDIR=/usr/lib/x86_64-linux-gnu
+
+Start any Lua interpreter and type:
+
+    prompt = require 'prompt'
+    prompt.enter()
+    -- luaprompt is running, press Ctrl-D to terminate
+
+Module 'prompt' has the following member functions:
+
+ * setprompts(single, multi). Provide two prompts, one for
+    single-line and one for multi-line input. The defaults
+    prompts are "> " and ">> ".
+ * sethistory(file_name). Set the file to be used to perist the
+    command history across sessions.  If this function isn't
+    called the command history is lost on session exit. Note
+    that the provided name is used as-is, that is, it is not
+    expanded as if it was entered at the shell so you cannot
+    use a string of the form "~/.lua_history" for example.
+ * setname(string). Set the name of the application. This is
+    basically the chunk name displayed with error messages. The
+    default program name is "lua".
+ * setcolor(boolean). Setting enable to false disables color
+    output. Color output is enabled by default if the output
+    has not been redirected to a file or pipe.
+ * enter(). Call this to begin an interactive session. The
+    session can be terminated with Ctrl-D.
+ * describe(var). Returns a string with a human-readable
+    serialization of the variable.
+
+There is also Lua script emulating standalone luaprompt.
+This script is installed by "luarocks install" command
+to "bin/luap". It can be invoked as "luap":
+
+    $ luap
+    > require 'prompt'
+    {
+      setcolor = <function: 0x268d470>,
+      enter = <function: 0x268d4a0>,
+      describe = <function: 0x268d3c0>,
+      setname = <function: 0x268d0d0>,
+      setprompts = <function: 0x268d0a0>,
+      sethistory = <function: 0x268d100>,
+    }
+    > os.exit(0)
+
+    $ luap -h
+    Usage: luap [-e STMT] [-l NAME] [-p] [-v] [-i]
+        [-j cmd] [-O cmd] [-h] [<script>] ...
+
+    Lua command prompt
+
+    Arguments:
+       script                Lua script and its arguments
+
+    Options:
+       -e STMT               Execute string 'STMT'
+       -l NAME               Require library 'NAME'
+       -p                    Force plain, uncolored output
+       -v                    Print version information
+       -i                    Enter interactive mode
+       -j cmd                Perform LuaJIT control command
+       -O cmd                Control LuaJIT optimizations
+       -h, --help            Show this help message and exit.
+
+Options -j and -O are available only on LuaJIT.
 
 Configuration
 =============
