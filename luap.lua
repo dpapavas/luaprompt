@@ -1,5 +1,13 @@
 #!/usr/bin/env lua
 
+local function greet()
+    local prompt = require 'prompt'
+    local text = [[
+luap %s
+Copyright (C) 2012-2015 Dimitris Papavasiliou, Boris Nagaev]]
+    print(text:format(prompt.version()))
+end
+
 local argparse = require "argparse"
 
 local parser = argparse()
@@ -30,7 +38,7 @@ end
 local args = parser:parse(arg)
 
 if args.v then
-    -- TODO
+    greet()
     os.exit(0)
 end
 
@@ -66,6 +74,7 @@ if args.script then
 end
 
 if (not args.script and not args.e) or args.i then
+    greet()
     local prompt = require 'prompt'
     prompt.setname('lua')
     prompt.setprompts('> ', '> ')

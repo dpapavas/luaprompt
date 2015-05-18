@@ -63,6 +63,11 @@ int lua_luap_describe(lua_State* L) {
     return 1;
 }
 
+int lua_luap_version(lua_State* L) {
+    lua_pushliteral(L, LUAP_VERSION);
+    return 1;
+}
+
 static const luaL_Reg luap_functions[] = {
     {"setprompts", lua_luap_setprompts},
     {"sethistory", lua_luap_sethistory},
@@ -70,6 +75,7 @@ static const luaL_Reg luap_functions[] = {
     {"setcolor", lua_luap_setcolor},
     {"enter", lua_luap_enter},
     {"describe", lua_luap_describe},
+    {"version", lua_luap_version},
     {NULL, NULL},
 };
 
