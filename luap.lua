@@ -32,7 +32,14 @@ parser:argument "script"
     :args '*'
 
 if jit then
-    -- TODO
+    parser:option "-j"
+        :argname "cmd"
+        :description "Perform LuaJIT control command"
+        :count "*"
+    parser:option "-O"
+        :argname "cmd"
+        :description "Control LuaJIT optimizations"
+        :count "*"
 end
 
 local args = parser:parse(arg)
@@ -40,6 +47,43 @@ local args = parser:parse(arg)
 if args.v then
     greet()
     os.exit(0)
+end
+
+if args.O then
+    for _, O in ipairs(args.O) do
+        jit.opt.start(O)
+    end
+end
+
+if args.j then
+    for _, j in ipairs(args.j) do
+        local cmd = j:match('^[^=]+')
+        if not cmd then
+            print(parser:get_help())
+            os.exit(0)
+        end
+        local cmd_args = {}
+        local cmd_args_str = j:match('=(.*)$')
+        if cmd_args_str then
+            for cmd_arg in cmd_args_str:gmatch('[^,]+') do
+                table.insert(cmd_args, cmd_arg)
+            end
+        end
+        local jit_module = jit[cmd]
+        if not jit_module then
+            local ok, m = pcall(require, 'jit.' .. cmd)
+            if ok then
+                jit_module = m
+            end
+        end
+        if not jit_module then
+            print('luap: unknown luaJIT command or ' ..
+                'jit.* modules not installed')
+            os.exit(0)
+        end
+        local unpack = unpack or table.unpack
+        jit_module.start(unpack(cmd_args))
+    end
 end
 
 if args.script and #args.script == 0 then
