@@ -60,7 +60,7 @@ be used to perist the command history across sessions.  If this
 function isn't called the command history is lost on session exit.
 Note that the provided name is used as-is, that is, it is not expanded
 as if it was entered at the shell so you cannot use a string of the
-form "~/.lua_history" for examle.
+form "~/.lua_history" for example.
 
 void luap_setcolor (lua_State *L, int enable)
 Setting enable to zero disables color output.  Color output is enabled
