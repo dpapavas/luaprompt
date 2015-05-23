@@ -127,7 +127,7 @@ static const char *colors[] = {"\033[0m",
 
 static lua_State *M;
 static int initialized = 0;
-static char *chunkname, *prompts[2], *buffer = NULL;
+static char *chunkname, *prompts[2][2], *buffer = NULL;
 
 #ifdef HAVE_LIBREADLINE
 
@@ -1322,16 +1322,25 @@ int luap_call (lua_State *L, int n) {
 
 void luap_setprompts(lua_State *L, const char *single, const char *multi)
 {
-    prompts[0] = (char *)realloc (prompts[0], strlen (single) + 16);
-    prompts[1] = (char *)realloc (prompts[1], strlen (multi) + 16);
+    /* Plain, uncolored prompts. */
+
+    prompts[0][0] = (char *)realloc (prompts[0][0], strlen (single) + 1);
+    prompts[0][1] = (char *)realloc (prompts[0][1], strlen (multi) + 1);
+    strcpy(prompts[0][0], single);
+    strcpy(prompts[0][1], multi);
+
+    /* Colored prompts. */
+
+    prompts[1][0] = (char *)realloc (prompts[1][0], strlen (single) + 16);
+    prompts[1][1] = (char *)realloc (prompts[1][1], strlen (multi) + 16);
 #ifdef HAVE_LIBREADLINE
-    sprintf (prompts[0], "\001%s\002%s\001%s\002",
+    sprintf (prompts[1][0], "\001%s\002%s\001%s\002",
              COLOR(6), single, COLOR(0));
-    sprintf (prompts[1], "\001%s\002%s\001%s\002",
+    sprintf (prompts[1][1], "\001%s\002%s\001%s\002",
              COLOR(6), multi, COLOR(0));
 #else
-    sprintf (prompts[0], "%s%s%s", COLOR(6), single, COLOR(0));
-    sprintf (prompts[0], "%s%s%s", COLOR(6), multi, COLOR(0));
+    sprintf (prompts[1][0], "%s%s%s", COLOR(6), single, COLOR(0));
+    sprintf (prompts[1][1], "%s%s%s", COLOR(6), multi, COLOR(0));
 #endif
 }
 
@@ -1383,7 +1392,7 @@ void luap_enter(lua_State *L)
             luap_setname (L, "lua");
         }
 
-        if (!prompts[0]) {
+        if (!prompts[0][0]) {
             luap_setprompts (L, ">  ", ">> ");
         }
 
@@ -1392,7 +1401,8 @@ void luap_enter(lua_State *L)
         initialized = 1;
     }
 
-    while ((line = readline (incomplete ? prompts[1] : prompts[0]))) {
+    while ((line = readline (incomplete ?
+                             prompts[colorize][1] : prompts[colorize][0]))) {
         int status;
 
         if (*line == '\0') {
