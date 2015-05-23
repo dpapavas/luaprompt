@@ -426,7 +426,11 @@ static char *module_completions (const char *text, int state)
                 /* Look for the module as require would and ask the
                  * user whether it should be loaded or not. */
 
+#if LUA_VERSION_NUM == 501
+                lua_getfield(M, -1, "loaders");
+#else
                 lua_getfield(M, -1, "searchers");
+#endif
                 lua_pushnil(M);
 
                 while((load = lua_next(M, -2))) {
