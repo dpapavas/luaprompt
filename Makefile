@@ -57,10 +57,13 @@ LDFLAGS=-lreadline -lhistory
 
 INSTALL=/usr/bin/install
 
-all: luap
+all: luap prompt.so
 
 luap: luap.c prompt.c prompt.h
 	$(CC) -o luap ${CFLAGS} ${LUA_CFLAGS} luap.c prompt.c ${LDFLAGS} ${LUA_LDFLAGS}
+
+prompt.so: module.c prompt.c prompt.h
+	$(CC) -o prompt.so -shared -fpic ${CFLAGS} ${LUA_CFLAGS} module.c prompt.c ${LDFLAGS} ${LUA_LDFLAGS}
 
 dist: luap
 	if [ -e /tmp/prompt ]; then rm -rf /tmp/prompt; fi
@@ -68,11 +71,12 @@ dist: luap
 	cp luap.c Makefile prompt.c prompt.h README ChangeLog /tmp/prompt
 	cd /tmp; tar zcf luaprompt.tar.gz prompt/
 
-install: luap
-	if [ -e luap ]; then $(INSTALL) luap $(BINDIR)/; fi
+install: luap prompt.so
+	if [ -e luap ]; then $(INSTALL) -D luap $(BINDIR)/luap; fi
+	if [ -e prompt.so ]; then $(INSTALL) -D prompt.so $(LIBDIR)/prompt.so; fi
 
 uninstall:
-	rm -f $(BINDIR)/luap
+	rm -f $(BINDIR)/luap $(LIBDIR)/prompt.so
 
 clean:
-	rm -f luap *~
+	rm -f luap prompt.so *~

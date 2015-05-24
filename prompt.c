@@ -743,20 +743,41 @@ static int traceback(lua_State *L)
     lua_pushstring(L, "\n\nStack trace:\n");
 
     for (i = 0 ; lua_getstack (L, i, &ar) ; i += 1) {
+#if LUA_VERSION_NUM == 501
         lua_getinfo(M, "Snl", &ar);
+#else
+        lua_getinfo(M, "Snlt", &ar);
+
+        if (ar.istailcall) {
+            lua_pushfstring(L, "\t... tail calls\n");
+        }
+#endif
 
         if (!strcmp (ar.what, "C")) {
-            lua_pushfstring(L, "\t#%d %s[C]:%s in function '%s%s%s'\n",
-                            i, COLOR(7), COLOR(8), COLOR(7), ar.name,
-                            COLOR(8));
+            lua_pushfstring(L, "\t#%d %s[C]:%s in function ",
+                            i, COLOR(7), COLOR(8));
+
+            if (ar.name) {
+                lua_pushfstring(L, "'%s%s%s'\n",
+                                COLOR(7), ar.name, COLOR(8));
+            } else {
+                lua_pushfstring(L, "%s?%s\n", COLOR(7), COLOR(8));
+            }
         } else if (!strcmp (ar.what, "main")) {
             lua_pushfstring(L, "\t#%d %s%s:%d:%s in the main chunk\n",
                             i, COLOR(7), ar.short_src, ar.currentline,
                             COLOR(8));
         } else if (!strcmp (ar.what, "Lua")) {
-            lua_pushfstring(L, "\t#%d %s%s:%d:%s in function '%s%s%s'\n",
+            lua_pushfstring(L, "\t#%d %s%s:%d:%s in function ",
                             i, COLOR(7), ar.short_src, ar.currentline,
-                            COLOR(8), COLOR(7), ar.name, COLOR(8));
+                            COLOR(8));
+
+            if (ar.name) {
+                lua_pushfstring(L, "'%s%s%s'\n",
+                                COLOR(7), ar.name, COLOR(8));
+            } else {
+                lua_pushfstring(L, "%s?%s\n", COLOR(7), COLOR(8));
+            }
         }
     }
 
@@ -1308,12 +1329,14 @@ int luap_call (lua_State *L, int n) {
 
     status = lua_pcall(L, n, LUA_MULTRET, h);
 
-    /* Print all returned values with proper formatting. */
+    /* Print any errors. */
 
     if (status != LUA_OK) {
         print_error ("%s%s%s\n", COLOR(1), lua_tostring (L, -1), COLOR(0));
         lua_pop (L, 1);
     }
+
+    /* Remove the error handler. */
 
     lua_remove (L, h);
 
@@ -1360,6 +1383,27 @@ void luap_setname(lua_State *L, const char *name)
     chunkname = (char *)realloc (chunkname, strlen(name) + 2);
     chunkname[0] = '=';
     strcpy (chunkname + 1, name);
+}
+
+void luap_getprompts(lua_State *L, const char **single, const char **multi)
+{
+    *single = prompts[0][0];
+    *multi = prompts[0][1];
+}
+
+void luap_gethistory(lua_State *L, const char **file)
+{
+    *file = logfile;
+}
+
+void luap_getcolor(lua_State *L, int *enabled)
+{
+    *enabled = colorize;
+}
+
+void luap_getname(lua_State *L, const char **name)
+{
+    *name = chunkname + 1;
 }
 
 void luap_enter(lua_State *L)
