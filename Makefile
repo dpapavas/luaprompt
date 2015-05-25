@@ -15,6 +15,8 @@ CFLAGS+= -D_GNU_SOURCE
 CFLAGS+= -DCOMPLETE_KEYWORDS	# Keywords such as for, while, etc.
 CFLAGS+= -DCOMPLETE_MODULES     # Module names.
 CFLAGS+= -DCOMPLETE_TABLE_KEYS	# Table keys, including global variables.
+CFLAGS+= -DCOMPLETE_METATABLE_KEYS # Keys in the __index metafield, if
+                                   # it exists and is a table.
 CFLAGS+= -DCOMPLETE_FILE_NAMES	# File names.
 
 # Uncomment the following line and customize the prefix as desired to

@@ -174,6 +174,9 @@ static char *keyword_completions (const char *text, int state)
 #endif
 
 #ifdef COMPLETE_TABLE_KEYS
+
+static int look_up_metatable;
+
 static char *table_key_completions (const char *text, int state)
 {
     static const char *c, *token;
@@ -215,15 +218,32 @@ static char *table_key_completions (const char *text, int state)
             lua_pushglobaltable(M);
         }
 
-        /* Call the standard pairs function. */
+        if (look_up_metatable) {
+            /* Replace the to-be-iterated value with it's metatable
+             * and set up a call to next. */
 
-        lua_getglobal (M, "pairs");
-        lua_insert (M, -2);
-        if(lua_type (M, -2) != LUA_TFUNCTION ||
-           lua_pcall (M, 1, 3, 0)) {
+            if (!luaL_getmetafield(M, -1, "__index") ||
+                (lua_type (M, -1) != LUA_TUSERDATA &&
+                 lua_type (M, -1) != LUA_TTABLE)) {
+                lua_settop(M, h);
+                return NULL;
+            }
 
-            lua_settop(M, h);
-            return NULL;
+            lua_getglobal(M, "next");
+            lua_replace(M, -3);
+            lua_pushnil(M);
+        } else {
+            /* Call the standard pairs function. */
+
+            lua_getglobal (M, "pairs");
+            lua_insert (M, -2);
+
+            if(lua_type (M, -2) != LUA_TFUNCTION ||
+               lua_pcall (M, 1, 3, 0)) {
+
+                lua_settop(M, h);
+                return NULL;
+            }
         }
     }
 
@@ -305,7 +325,8 @@ static char *table_key_completions (const char *text, int state)
 
             m = strlen(token);
 
-            if (l >= m && !strncmp (token, candidate, m)
+            if (l >= m && !strncmp (token, candidate, m) &&
+                (oper != ':' || type == LUA_TFUNCTION)
 #ifdef HIDDEN_KEY_PREFIX
                 && strncmp(candidate, HIDDEN_KEY_PREFIX,
                            sizeof(HIDDEN_KEY_PREFIX) - 1)
@@ -672,6 +693,20 @@ static char *generator (const char *text, int state)
 
     if (which == 2) {
 #ifdef COMPLETE_TABLE_KEYS
+        look_up_metatable = 0;
+        if ((match = table_key_completions (text, state))) {
+            return match;
+        }
+#endif
+        which += 1;
+        state = 0;
+    }
+
+    /* Try to complete a metatable access. */
+
+    if (which == 3) {
+#ifdef COMPLETE_METATABLE_KEYS
+        look_up_metatable = 1;
         if ((match = table_key_completions (text, state))) {
             return match;
         }
@@ -683,7 +718,7 @@ static char *generator (const char *text, int state)
 #ifdef COMPLETE_FILE_NAMES
     /* Try to complete a file name. */
 
-    if (which == 3) {
+    if (which == 4) {
         if (text[0] == '\'' || text[0] == '"') {
             int n;
 
@@ -1369,8 +1404,13 @@ void luap_setprompts(lua_State *L, const char *single, const char *multi)
 
 void luap_sethistory(lua_State *L, const char *file)
 {
-    logfile = realloc (logfile, strlen(file) + 1);
-    strcpy (logfile, file);
+    if (file) {
+        logfile = realloc (logfile, strlen(file) + 1);
+        strcpy (logfile, file);
+    } else if (logfile) {
+        free(logfile);
+        logfile = NULL;
+    }
 }
 
 void luap_setcolor(lua_State *L, int enable)

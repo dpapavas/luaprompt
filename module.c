@@ -35,11 +35,11 @@ static int call (lua_State *L)
     return lua_gettop(L);
 }
 
-static int prompt_index (lua_State *L)
+static void update_index (lua_State *L)
 {
     const char *k;
 
-    k = lua_tostring(L, 2);
+    k = lua_tostring(L, -1);
 
     if (!k) {
         k = "";
@@ -67,18 +67,21 @@ static int prompt_index (lua_State *L)
         if (history) {
             lua_pushstring(L, history);
         } else {
-            lua_pushnil(L);
+            lua_pushboolean(L, 0);
         }
     } else if (!strcmp(k, "name")) {
         const char *name;
 
         luap_getname(L, &name);
         lua_pushstring(L, name);
-    } else {
-        lua_rawget (L, 1);
     }
 
-    return 1;
+    /* Update the __index table. */
+
+    luaL_getmetafield(L, -3, "__index");
+    lua_insert(L, -3);
+    lua_rawset(L, -3);
+    lua_pop(L, 1);
 }
 
 static int prompt_newindex (lua_State *L)
@@ -109,64 +112,15 @@ static int prompt_newindex (lua_State *L)
         luap_setname(L, lua_tostring(L, 3));
     } else {
         lua_rawset (L, 1);
+        return 0;
     }
+
+    /* Update the __index table. */
+
+    lua_pop(L, 1);
+    update_index(L);
 
     return 0;
-}
-
-static int next_key(lua_State *L)
-{
-    static int i;
-    const char *key;
-
-    /* If key is nil, we're starting from scratch. */
-
-    if (!(key = lua_tostring(L, 2))) {
-        i = 0;
-    } else {
-        i += 1;
-    }
-
-    /* If we're past the internal keys, simply run through lua_next. */
-
-    if (i >= 4) {
-        /* Pop the first, internal key, which is not really part of
-         * the table. */
-
-        if (i == 4) {
-            lua_pop(L, 1);
-            lua_pushnil(L);
-        }
-
-        if (lua_next(L, 1)) {
-            return 2;
-        } else {
-            lua_pushnil(L);
-            return 1;
-        }
-    } else {
-        const char *keys[] = {"prompts", "colorize", "history", "name"};
-
-        /* Return an internal key-value pair. */
-
-        lua_pushstring(L, keys[i]);
-
-        lua_pushcfunction(L, prompt_index);
-        lua_pushvalue(L, 1);
-        lua_pushvalue(L, -3);
-        lua_call(L, 2, 1);
-
-        return 2;
-    }
-}
-
-static int prompt_pairs(lua_State *L)
-{
-    lua_pushcfunction(L, next_key);
-    lua_insert(L, 1);
-    lua_pushnil(L);
-
-    return 3;
 }
 
 int luaopen_prompt(lua_State* L) {
@@ -187,17 +141,32 @@ int luaopen_prompt(lua_State* L) {
     {
         lua_newtable (L);
 
-        lua_pushcfunction (L, prompt_pairs);
-        lua_setfield (L, -2, "__pairs");
+        /* __index */
 
-        lua_pushcfunction (L, prompt_index);
+        lua_newtable(L);
         lua_setfield (L, -2, "__index");
+
+        /* __newindex */
 
         lua_pushcfunction (L, prompt_newindex);
         lua_setfield (L, -2, "__newindex");
 
         lua_setmetatable (L, -2);
     }
+
+    /* Initialize the __index table. */
+
+    lua_pushliteral(L, "prompts");
+    update_index(L);
+
+    lua_pushliteral(L, "colorize");
+    update_index(L);
+
+    lua_pushliteral(L, "history");
+    update_index(L);
+
+    lua_pushliteral(L, "name");
+    update_index(L);
 
 #if LUA_VERSION_NUM == 501
     luaL_register(L, NULL, functions);
