@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #ifdef HAVE_IOCTL
@@ -720,23 +721,35 @@ static char *generator (const char *text, int state)
 
     if (which == 4) {
         if (text[0] == '\'' || text[0] == '"') {
-            int n;
-
             match = rl_filename_completion_function (text + 1, state);
 
             if (match) {
-                /* If a match was produced, add the quote
-                 * characters. */
+                struct stat s;
+                int n;
 
                 n = strlen (match);
+                stat(match, &s);
+
+                /* If a match was produced, add the quote
+                 * characters. */
 
                 match = (char *)realloc (match, n + 3);
                 memmove (match + 1, match, n);
                 match[0] = text[0];
-                match[n + 1] = text[0];
-                match[n + 2] = '\0';
 
-                rl_filename_completion_desired = 1;
+                /* If the file's a directory, add a trailing backslash
+                 * and suppress the space, otherwise add the closing
+                 * quote. */
+
+                if (S_ISDIR(s.st_mode)) {
+                    match[n + 1] = '/';
+
+                    rl_completion_suppress_append = 1;
+                } else {
+                    match[n + 1] = text[0];
+                }
+
+                match[n + 2] = '\0';
             }
         }
     }
