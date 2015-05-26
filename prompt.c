@@ -1,4 +1,4 @@
-/* Copyright (C) 2012 Papavasileiou Dimitris
+/* Copyright (C) 2012-2015 Papavasileiou Dimitris
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -101,11 +101,25 @@ extern int read_history ();
 #  endif /* defined(HAVE_READLINE_HISTORY_H) */
 #endif /* HAVE_READLINE_HISTORY */
 
-static char *logfile;
+#if LUA_VERSION_NUM == 501
+#define EOF_MARKER "'<eof>'"
+#else
+#define EOF_MARKER "<eof>"
+#endif
 
 #define print_output(...) fprintf (stdout, __VA_ARGS__), fflush(stdout)
 #define print_error(...) fprintf (stderr, __VA_ARGS__), fflush(stderr)
 #define absolute(L, i) (i < 0 ? lua_gettop (L) + i + 1 : i)
+
+#define COLOR(i) (colorize ? colors[i] : "")
+
+static lua_State *M;
+static int initialized = 0;
+static char *logfile, *chunkname, *prompts[2][2], *buffer = NULL;
+
+#ifdef SAVE_RESULTS
+static int results = LUA_REFNIL, results_n = 0;
+#endif
 
 static int colorize = 1;
 static const char *colors[] = {"\033[0m",
@@ -117,18 +131,6 @@ static const char *colors[] = {"\033[0m",
                                "\033[1;33m",
                                "\033[1m",
                                "\033[22m"};
-
-#define COLOR(i) (colorize ? colors[i] : "")
-
-#if LUA_VERSION_NUM == 501
-#define EOF_MARKER "'<eof>'"
-#else
-#define EOF_MARKER "<eof>"
-#endif
-
-static lua_State *M;
-static int initialized = 0;
-static char *chunkname, *prompts[2][2], *buffer = NULL;
 
 #ifdef HAVE_LIBREADLINE
 
@@ -842,6 +844,14 @@ static int execute ()
 {
     int i, h_0, h, status;
 
+#ifdef SAVE_RESULTS
+    /* Get the results table, and stash it behind the to-be-executed
+     * chunk. */
+
+    lua_rawgeti(M, LUA_REGISTRYINDEX, results);
+    lua_insert(M, -2);
+#endif
+
     h_0 = lua_gettop(M);
     status = luap_call (M, 0);
     h = lua_gettop (M) - h_0 + 1;
@@ -851,17 +861,31 @@ static int execute ()
 
         result = luap_describe (M, -i);
 
-        if (result) {
-            if (h == 1) {
-                print_output ("%s%s%s\n", COLOR(3), result, COLOR(0));
-            } else {
-                print_output ("%s%d%s: %s%s\n", COLOR(4), h - i + 1,
-                              COLOR(3), result, COLOR(0));
-            }
+#ifdef SAVE_RESULTS
+        lua_pushvalue (M, -i);
+        lua_rawseti(M, h_0 - 1, (results_n += 1));
+
+        print_output ("%s%s[%d]%s = %s%s\n",
+                      COLOR(4), RESULTS_TABLE_NAME, results_n,
+                      COLOR(3), result, COLOR(0));
+#else
+        if (h == 1) {
+            print_output ("%s%s%s\n", COLOR(3), result, COLOR(0));
+        } else {
+            print_output ("%s%d%s: %s%s\n", COLOR(4), h - i + 1,
+                          COLOR(3), result, COLOR(0));
         }
+#endif
     }
 
+    /* Clean up.  We need to remove the results table as well if we
+     * track results. */
+
+#ifdef SAVE_RESULTS
+    lua_settop (M, h_0 - 2);
+#else
     lua_settop (M, h_0 - 1);
+#endif
 
     return status;
 }
@@ -1463,6 +1487,9 @@ void luap_enter(lua_State *L)
 {
     int incomplete = 0, s = 0, t = 0, l;
     char *line, *prepended;
+#ifdef SAVE_RESULTS
+    int cleanup = 0;
+#endif
 
     /* Save the state since it needs to be passed to some readline
      * callbacks. */
@@ -1497,6 +1524,30 @@ void luap_enter(lua_State *L)
 
         initialized = 1;
     }
+
+#ifdef SAVE_RESULTS
+    if (results == LUA_REFNIL) {
+        lua_newtable(L);
+
+#ifdef WEAK_RESULTS
+        lua_newtable(L);
+        lua_pushliteral(L, "v");
+        lua_setfield(L, -2, "__mode");
+        lua_setmetatable(L, -2);
+#endif
+
+        results = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
+    lua_getglobal(L, RESULTS_TABLE_NAME);
+    if (lua_isnil(L, -1)) {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, results);
+        lua_setglobal(L, RESULTS_TABLE_NAME);
+
+        cleanup = 1;
+    }
+    lua_pop(L, 1);
+#endif
 
     while ((line = readline (incomplete ?
                              prompts[colorize][1] : prompts[colorize][0]))) {
@@ -1592,6 +1643,13 @@ void luap_enter(lua_State *L)
         free (prepended);
         free (line);
     }
+
+#ifdef SAVE_RESULTS
+    if (cleanup) {
+        lua_pushnil(L);
+        lua_setglobal(L, RESULTS_TABLE_NAME);
+    }
+#endif
 
     print_output ("\n");
 }
