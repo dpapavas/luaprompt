@@ -1,6 +1,6 @@
 luaprompt
 
-Copyright (C) 2012-2014 Dimitris Papavasileiou <dpapavas@gmail.com>
+Copyright (C) 2012-2015 Dimitris Papavasileiou <dpapavas@gmail.com>
 
 luaprompt is both an interactive Lua prompt that can be used instead
 of the official interpreter, as well as a simple library that provides
@@ -13,10 +13,12 @@ regular use.
 
 luaprompt features:
 
-* Readline-based input with history and completion:  In particular all
+* Readline-based input with history and completion: In particular all
   keywords, global variables and table accesses (with string or
   integer keys) can be completed in addition to readline's standard
-  file completion.
+  file completion.  Module names are also completed, for modules
+  installed in the standard directories, and completed modules can
+  optionally be loaded.
 
 * Persistent command history (retained across sessions).
 
@@ -25,7 +27,8 @@ luaprompt features:
   with an equal sign is not required).  Values are printed in a
   descriptive way that tries to be as readable as possible.  The
   formatting tries to mimic Lua code (this is done to minimize
-  ambiguities, no guarantees are made that it is valid code).
+  ambiguities and no guarantees are made that it is valid code).
+  Additionally, each value is stored in a table for future reference.
 
 * Color highlighting of error messages and variable printouts.
 
@@ -66,6 +69,14 @@ void luap_setcolor (lua_State *L, int enable)
 Setting enable to zero disables color output.  Color output is enabled
 by default if the output has not been redirected to a file or pipe.
 
+There are also matching luap_get* calls, which work much like you'd
+expect them to:
+
+void luap_getprompts(lua_State *L, const char **single, const char **multi)
+void luap_gethistory(lua_State *L, const char **file)
+void luap_getcolor(lua_State *L, int *enabled)
+void luap_getname(lua_State *L, const char **name)
+
 In addition to the above the following calls, which are meant for
 internal use can be used by the host applicaton as well if required.
 
@@ -75,16 +86,58 @@ the specified index.
 
 int luap_call (lua_State *L, int n)
 Calls a function with n arguments and provides a stack trace on error.
-This equivalent to calling lua_pcall with LUA_MULTRET.
+This is equivalent to calling lua_pcall with LUA_MULTRET.
+
+The prompt module
+=================
+
+luaprompt is also available as a Lua module.  Using it is pretty
+straightforward, as it essentially wraps the calls described above,
+either in variables which can be set or queried, or in Lua functions.
+An example session follows:
+
+> prompt = require "prompt"
+> prompt.colorize = true
+> prompt.name = "myprompt"
+> prompt.history = "/tmp/.myprompt_history"
+> prompt.prompts = {"%  ", "%% "}
+> prompt.enter()
+%   _G[nil] = 
+%% nil
+myprompt:2: table index is nil
+
+Stack trace:
+	#0 [C]: in function '__newindex'
+	#1 myprompt:2: in the main chunk
+	#2 [C]: in function 'enter'
+	#3 stdin:1: in the main chunk
+	#4 [C]: in function ?
+
+% ^D 
+>
+
+One can also use just the pretty-printer of luaprompt, by calling
+prompt.describe, which returns a string with a pretty print-out of the
+argument.  For example:
+
+> =prompt.describe(coroutine)
+{ 
+  create = <function: 0x41a8b0>,
+  yield = <function: 0x41a630>,
+  wrap = <function: 0x41a910>,
+  running = <function: 0x41a890>,
+  resume = <function: 0x41a9e0>,
+  status = <function: 0x41a770>,
+}
 
 Standalone usage
 ================
 
-Although luaprompt is meant for embedded use a standalone
-interpreter has been written which tries to mimic the standard lua
-interepreter as much as possible (currently only the -E flag is not
-supported) while providing the extra set of features described above.
-Some tweaking of the makefile may be required to get it to build.
+Although luaprompt is meant for embedded use, a standalone interpreter
+has also been written. It tries to mimic the standard lua interepreter
+as much as possible (currently only the -E flag is not supported)
+while providing the extra set of features described above.  Some
+tweaking of the makefile may be required to get it to build.
 
 Configuration
 =============
