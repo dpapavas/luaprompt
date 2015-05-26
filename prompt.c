@@ -1311,6 +1311,8 @@ static void describe (lua_State *L, int index)
 
 char *luap_describe (lua_State *L, int index)
 {
+    int oldcolorize;
+
 #ifdef HAVE_IOCTL
     struct winsize w;
 
@@ -1330,6 +1332,12 @@ char *luap_describe (lua_State *L, int index)
     indent = 0;
     column = 0;
 
+    /* Suppress colorization, to avoid escape sequences in the
+     * returned strings. */
+
+    oldcolorize = colorize;
+    colorize = 0;
+
     /* Create a table to hold the ancestors for checking for cycles
      * when printing table hierarchies. */
 
@@ -1339,6 +1347,7 @@ char *luap_describe (lua_State *L, int index)
     describe (L, index);
 
     luaL_unref (L, LUA_REGISTRYINDEX, ancestors);
+    colorize = oldcolorize;
 
     return dump;
 }
