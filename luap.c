@@ -161,10 +161,13 @@ int main(int argc, char **argv)
         } else if (option == 'l') {
             lua_getglobal (L, "require");
             lua_pushstring (L, optarg);
+
             if (luap_call (L, 1)) {
                 return EXIT_FAILURE;
             } else {
+#if LUA_VERSION_NUM > 501
                 lua_setglobal (L, optarg);
+#endif
             }
         } else if (option == 'h') {
             printf (

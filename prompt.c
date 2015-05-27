@@ -1248,7 +1248,7 @@ static void describe (lua_State *L, int index)
 
         lua_pushnil (L);
         while (lua_next (L, index) != 0) {
-            if (!lua_type (L, -2) == LUA_TNUMBER ||
+            if (lua_type (L, -2) != LUA_TNUMBER ||
                 lua_tonumber (L, -2) != lua_tointeger (L, -2) ||
                 lua_tointeger (L, -2) < 1 ||
                 lua_tointeger (L, -2) > l) {

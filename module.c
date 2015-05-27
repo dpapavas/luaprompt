@@ -159,7 +159,11 @@ int luaopen_prompt(lua_State* L) {
 
     /* Create the prompt table. */
 
+#if LUA_VERSION_NUM == 501
+    luaL_register(L, "prompt", functions);
+#else
     lua_newtable (L);
+#endif
 
     {
         lua_newtable (L);
@@ -191,9 +195,7 @@ int luaopen_prompt(lua_State* L) {
     lua_pushliteral(L, "name");
     update_index(L);
 
-#if LUA_VERSION_NUM == 501
-    luaL_register(L, NULL, functions);
-#else
+#if LUA_VERSION_NUM != 501
     luaL_setfuncs(L, functions, 0);
 #endif
 
