@@ -154,6 +154,8 @@ int luaopen_prompt(lua_State* L) {
         {NULL, NULL},
     };
 
+    /* Set default values. */
+
     luap_setname(L, "lua");
     luap_setprompts (L, ">  ", ">> ");
 
@@ -180,6 +182,10 @@ int luaopen_prompt(lua_State* L) {
 
         lua_setmetatable (L, -2);
     }
+
+    lua_pushliteral(L, "version");
+    lua_pushliteral(L, LUAP_VERSION);
+    lua_settable(L, -3);
 
     /* Initialize the __index table. */
 

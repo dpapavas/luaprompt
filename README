@@ -3,8 +3,8 @@ luaprompt
 Copyright (C) 2012-2015 Dimitris Papavasileiou <dpapavas@gmail.com>
 
 luaprompt is both an interactive Lua prompt that can be used instead
-of the official interpreter, as well as a simple library that provides
-a Lua command prompt that can be embedded in a host application.  As a
+of the official interpreter, as well as a module that provides a Lua
+command prompt that can be embedded in a host application.  As a
 standalone interpreter it provides many conveniences that are missing
 from the official Lua interpreter.  As an embedded prompt, it's meant
 for applications that use Lua as a configuration or interface language
@@ -23,9 +23,9 @@ luaprompt features:
 * Persistent command history (retained across sessions).
 
 * Proper value pretty-printing for interactive use: When an expression
-  is entered at the prompt all returned values are printed (prepending
-  with an equal sign is not required).  Values are printed in a
-  descriptive way that tries to be as readable as possible.  The
+  is entered at the prompt, all returned values are printed
+  (prepending with an equal sign is not required).  Values are printed
+  in a descriptive way that tries to be as readable as possible.  The
   formatting tries to mimic Lua code (this is done to minimize
   ambiguities and no guarantees are made that it is valid code).
   Additionally, each value is stored in a table for future reference.
@@ -35,14 +35,72 @@ luaprompt features:
 Embedded Usage
 ==============
 
-To embed luaprompt into a host application simply compile and link
+To embed luaprompt into a host application, simply compile and link
 prompt.c with your sources.  A POSIX environment is assumed and
-readline is required for proper command line editing.  If readline is
-provided you should define the macros HAVE_LIBREADLINE and either
-HAVE_READLINE_READLINE_H or HAVE_READLINE_H depending on where your
-readline's header files are installed.  Similar macros are required
-for command line history support.  See the example Makefile for
-details.
+readline is required for proper command line editing.  If GNU Readline
+is provided, you should define the macros HAVE_LIBREADLINE and
+HAVE_READLINE_HISTORY.  You should also define HAVE_IOCTL, unless your
+environment doesn't support the TIOCGWINSZ ioctl call to get the
+terminal width.
+
+Configuration
+=============
+
+You can define several macros, in order to configure luaprmompt's
+functionality.  You can define these macros in your Makefile by
+passing -DMACRO_NAME, or -DMACRO_WITH_VALUE=\"value\" to the
+compiler.
+
+The following macros control auto-completion:
+
+COMPLETE_KEYWORDS:       Keywords such as for, while, etc
+COMPLETE_MODULES:        Module names
+COMPLETE_TABLE_KEYS:     Table keys, including global variables
+COMPLETE_METATABLE_KEYS: Keys in the __index metafield, if it
+                         exists and is a table
+COMPLETE_FILE_NAMES:     File names
+
+Define SAVE_RESULTS to enable tracking of results.  When enabled each
+returned value, that is, each value the prompt prints out, is also
+added to a table for future reference.
+
+The name of the table holding the results can be configured by
+defining RESULTS_TABLE_NAME to the desired table name (as a C string).
+
+The table holding the results, can also be made to have weak values,
+so as not to interfere with garbage collection.  To enable this,
+define WEAK_RESULTS.
+
+Uncomment the following line and customize the prefix as desired to
+
+You can keep the auto-completer from considering certain table keys
+(and hence global variables) for completion, based on their prefix.
+To enable this behavior, define HIDDEN_KEY_PREFIX to the desired
+prefix (as a C string).
+
+When completing certain kinds of values, such as tables or
+functions, the completer also appends certain useful suffixes such
+as '.', '[' or '('. Normally these are appended only when the
+value's name has already been fully entered, or previously fully
+completed, so that one can still complete the name without the
+suffix.  In order to append the suffix, one then only has to press
+the completion key one more time.
+
+Define ALWAYS_APPEND_SUFFIXES to make the completer always append
+these suffixes.
+
+The autocompleter can complete module names, as if they were already
+require'd and available as a global variable.  Once the module name is
+fully completed, a further tab press loads the module and exports it
+as a global variable so that all further tab-completions now apply to
+the module's table.
+
+You can disable this functionality, by defining NO_MODULE_LOAD.
+Module names will then only be completed inside strings (for use with
+require).
+
+To make the auto-completer ask for confirmation before loading a
+module, define CONFIRM_MODULE_LOAD.
 
 The API is very simple:
 
@@ -136,15 +194,7 @@ Standalone usage
 Although luaprompt is meant for embedded use, a standalone interpreter
 has also been written. It tries to mimic the standard lua interepreter
 as much as possible (currently only the -E flag is not supported)
-while providing the extra set of features described above.  Some
-tweaking of the makefile may be required to get it to build.
-
-Configuration
-=============
-
-Some aspects of luaprompt's behavior are configurable at compile time.
-Please consult the supplied Makefile for the available options and
-their explanations.
+while providing the extra set of features described above.
 
 License
 =======
