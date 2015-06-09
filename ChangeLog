@@ -66,3 +66,15 @@
 
 	  - Completion can be disabled individually for certain kinds
 	    of symbols via compile-time switches.
+
+2015-06-09  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.6 with the following improvements:
+
+	- Switched to LuaRocks-based building/distribution.
+	- Converted luaprompt to a proper Lua module.
+	- Added saving of results into a table.
+	- Added support for completion based on __index being a table.
+	- Fixed filename completions to allow continuing completion into
+	  subdirectories.
+	- Various bugfixes.
