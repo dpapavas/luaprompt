@@ -23,15 +23,11 @@
 -- SOFTWARE.
 
 local version = "0.5"
+local copyright = "luap " .. version ..
+   " Copyright (C) 2012-2015 Dimitris Papavasiliou, Boris Nagaev"
+
 local prompt = require "prompt"
 local argparse = require "argparse"
-
-local function greet()
-   print(string.format([[
-luap %s Copyright (C) 2015 Dimitris Papavasiliou, Boris Nagaev
-luaprompt %s Copyright (C) 2012-2015 Dimitris Papavasiliou]],
-            version, prompt.version))
-end
 
 -- Define the command-line argument parser.
 
@@ -54,11 +50,11 @@ parser:option "-l"
 
 if jit then
    parser:option "-j"
-      :argname "cmd"
+      :argname "CMD"
       :description "Perform LuaJIT control command."
       :count "*"
    parser:option "-O"
-      :argname "opt"
+      :argname "OPT"
       :description "Control LuaJIT optimizations."
       :count "*"
 end
@@ -78,7 +74,7 @@ parser:flag "-i"
 
 parser:argument "SCRIPT"
    :description [[A Lua script to be executed.  Any arguments
-specfied after the script name are passed to
+specfied after the script name, are passed to
 the script.]]
    :args '*'
 
@@ -87,7 +83,9 @@ local args = parser:parse(arg)
 -- Print version information and exit.
 
 if args.v then
-   greet()
+   print(table.concat ({copyright,
+                        prompt.copyrights[1],
+                        prompt.copyrights[2]}, "\n"))
    os.exit(0)
 end
 
@@ -98,6 +96,14 @@ if args.O then
       jit.opt.start(O)
    end
 end
+
+local interactive = args.i or (#args.SCRIPT == 0 and #args.e == 0)
+
+if interactive then
+   print(table.concat ({prompt.copyrights[2], copyright}, "\n"))
+end
+
+-- Parse control commands and pass them to LuaJIT.
 
 if args.j then
    for _, j in ipairs(args.j) do
@@ -139,7 +145,7 @@ end
 
 -- Load and execute chunks passed on the command line.
 
-if args.e and #args.e > 0 then
+if #args.e > 0 then
    local loadstring = loadstring or load
    for _, e in ipairs(args.e) do
       loadstring(e)()
@@ -148,7 +154,7 @@ end
 
 -- Require modules specified on the command line.
 
-if args.l and #args.l > 0 then
+if #args.l > 0 then
    for _, l in ipairs(args.l) do
       require(l)
    end
@@ -157,16 +163,29 @@ end
 -- Run the script given on the command line, passing any arguments as
 -- required.
 
-if args.script and #args.script > 0 then
-   local name = table.remove(args.script, 1)
-   loadfile(name)(unpack(args.script))
+if #args.SCRIPT > 0 then
+   local chunk
+   local loadstring = loadstring or load
+   local unpack = unpack or table.unpack
+   local name = table.remove(args.SCRIPT, 1)
+
+   if name == "-" then
+      chunk, message = loadstring(io.stdin:read("*a"))
+   else
+      chunk, message = loadfile(name)
+   end
+
+   if chunk then
+      prompt.call(chunk, unpack(args.SCRIPT))
+   else
+      print(message)
+      os.exit(0)
+   end
 end
 
 -- Enter interactive mode, if appropriate.
 
-if args.i or (#args.SCRIPT == 0 and #args.e == 0)  then
-   greet()
-
+if interactive then
    prompt.name = 'lua'
    prompt.prompts = {'>  ', '>> '}
    prompt.colorize = not args.p

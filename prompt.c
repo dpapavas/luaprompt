@@ -1447,7 +1447,13 @@ void luap_sethistory(lua_State *L, const char *file)
 
 void luap_setcolor(lua_State *L, int enable)
 {
-    colorize = enable;
+    /* Don't allow color if we're not writing to a terminal. */
+
+    if (!isatty (STDOUT_FILENO) || !isatty (STDERR_FILENO)) {
+        colorize = 0;
+    } else {
+        colorize = enable;
+    }
 }
 
 void luap_setname(lua_State *L, const char *name)

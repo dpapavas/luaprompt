@@ -187,6 +187,21 @@ int luaopen_prompt(lua_State* L) {
     lua_pushliteral(L, LUAP_VERSION);
     lua_settable(L, -3);
 
+    lua_pushliteral(L, "copyrights");
+    lua_createtable(L, 2, 0);
+    lua_pushstring(L,
+                   "luaprompt " LUAP_VERSION " Copyright (C) "
+                   "2012-2015 Dimitris Papavasiliou" );
+    lua_rawseti(L, -2, 1);
+
+#if LUA_VERSION_NUM == 501
+    lua_pushstring(L, LUA_VERSION " " LUA_COPYRIGHT);
+#else
+    lua_pushliteral(L, LUA_COPYRIGHT);
+#endif
+    lua_rawseti(L, -2, 2);
+    lua_settable(L, -3);
+
     /* Initialize the __index table. */
 
     lua_pushliteral(L, "prompts");
