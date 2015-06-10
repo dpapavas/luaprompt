@@ -176,6 +176,11 @@ if #args.SCRIPT > 0 then
    end
 
    if chunk then
+      -- This duplicates the behavior of the standard Lua interpreter
+      -- to some extent.  Arguments prior to the script name are not
+      -- passed.
+
+      arg = {[0] = name, unpack(args.SCRIPT)}
       prompt.call(chunk, unpack(args.SCRIPT))
    else
       print(message)
