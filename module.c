@@ -22,6 +22,7 @@
  */
 
 #include <string.h>
+#include <unistd.h>
 
 #include <lualib.h>
 #include <lauxlib.h>
@@ -200,6 +201,11 @@ int luaopen_prompt(lua_State* L) {
     lua_pushliteral(L, LUA_COPYRIGHT);
 #endif
     lua_rawseti(L, -2, 2);
+    lua_settable(L, -3);
+
+    lua_pushliteral(L, "interactive");
+    lua_pushboolean (L, (isatty (STDIN_FILENO) &&
+                         isatty (STDOUT_FILENO)));
     lua_settable(L, -3);
 
     /* Initialize the __index table. */

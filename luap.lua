@@ -97,7 +97,8 @@ if args.O then
    end
 end
 
-local interactive = args.i or (#args.SCRIPT == 0 and #args.e == 0)
+local interactive = (args.i or (prompt.interactive and
+                                   #args.SCRIPT == 0 and #args.e == 0))
 
 if interactive then
    print(table.concat ({prompt.copyrights[2], copyright}, "\n"))
@@ -163,11 +164,17 @@ end
 -- Run the script given on the command line, passing any arguments as
 -- required.
 
-if #args.SCRIPT > 0 then
+if #args.SCRIPT > 0 or (not interactive and #args.e == 0) then
    local chunk
    local loadstring = loadstring or load
    local unpack = unpack or table.unpack
-   local name = table.remove(args.SCRIPT, 1)
+   local name
+
+   if #args.SCRIPT > 0 then
+     name = table.remove(args.SCRIPT, 1)
+   else
+      name = "-"
+   end
 
    if name == "-" then
       chunk, message = loadstring(io.stdin:read("*a"))
