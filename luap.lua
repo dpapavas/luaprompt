@@ -144,20 +144,24 @@ if args.j then
    end
 end
 
+-- Require modules specified on the command line.
+
+if #args.l > 0 then
+   for _, l in ipairs(args.l) do
+      if _VERSION == "Lua 5.1" then
+         require(l)
+      else
+         _G[l] = require(l)
+      end
+   end
+end
+
 -- Load and execute chunks passed on the command line.
 
 if #args.e > 0 then
    local loadstring = loadstring or load
    for _, e in ipairs(args.e) do
       loadstring(e)()
-   end
-end
-
--- Require modules specified on the command line.
-
-if #args.l > 0 then
-   for _, l in ipairs(args.l) do
-      require(l)
    end
 end
 
