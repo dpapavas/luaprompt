@@ -20,7 +20,7 @@
 -- CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-package = "prompt"
+package = "luaprompt"
 version = "dev-1"
 supported_platforms = {"!windows", "!win32"}
 
