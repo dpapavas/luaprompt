@@ -46,10 +46,10 @@ terminal width.
 Configuration
 =============
 
-You can define several macros, in order to configure luaprmompt's
-functionality.  You can define these macros in your Makefile by
-passing -DMACRO_NAME, or -DMACRO_WITH_VALUE=\"value\" to the
-compiler.
+You can use several macros in order to configure luaprmompt's
+functionality, by defining them in your Makefile.  For instance, to
+pass the macro MACRO_NAME to the compiler, simply add -DMACRO_NAME, or
+-DMACRO_WITH_VALUE=\"value\" to the compile flags.
 
 The following macros control auto-completion:
 
@@ -149,10 +149,26 @@ This is equivalent to calling lua_pcall with LUA_MULTRET.
 The prompt module
 =================
 
-luaprompt is also available as a Lua module.  Using it is pretty
-straightforward, as it essentially wraps the calls described above,
-either in variables which can be set or queried, or in Lua functions.
-An example session follows:
+luaprompt is also available as a Lua module.  It can be installed via
+LuaRocks with:
+
+    luarocks install luaprompt
+
+Alternatively, you can customize the behavior as described in the
+"Configuration" section.  Start by downloading and unpacking the
+sources with:
+
+    luarocks unpack luaprompt
+
+Change to the directory it was downloaded to, edit the file
+"luaprompt-dev-1.rockspec" to add, remove or edit the default
+configuration macros, and then build and install with:
+
+    luarocks make luaprompt-dev-1.rockspec
+     
+Using the module is pretty straightforward, as it essentially wraps
+the calls described above, either in variables which can be set or
+queried, or in Lua functions.  An example session follows:
 
 > prompt = require "prompt"
 > prompt.colorize = true
@@ -195,6 +211,9 @@ Although luaprompt is meant for embedded use, a standalone interpreter
 has also been written. It tries to mimic the standard lua interepreter
 as much as possible (currently only the -E flag is not supported)
 while providing the extra set of features described above.
+          
+It is installed alongside the module and can be accessed simply by
+typing "luap" instead of "lua" the command line.
 
 License
 =======
