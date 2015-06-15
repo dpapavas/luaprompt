@@ -1499,6 +1499,7 @@ void luap_enter(lua_State *L)
 
     if (!initialized) {
 #ifdef HAVE_LIBREADLINE
+        rl_readline_name = "luaprompt";
         rl_basic_word_break_characters = " \t\n`@$><=;|&{(";
         rl_completion_entry_function = generator;
         rl_completion_display_matches_hook = display_matches;
