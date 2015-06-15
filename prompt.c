@@ -463,7 +463,7 @@ static char *module_completions (const char *text, int state)
 
                             /* If it was found but not loaded, return
                              * the module name as a match to avoid
-                             * asking the user againg if the tab key
+                             * asking the user again if the tab key
                              * is pressed repeatedly. */
 
                             lua_settop(M, h);
@@ -495,6 +495,42 @@ static char *module_completions (const char *text, int state)
                     }
                 }
             } else {
+                lua_getglobal(M, text);
+
+                if (lua_isnil(M, -1)) {
+#ifdef CONFIRM_MODULE_LOAD
+                    char c;
+
+                    print_output ("\nGlobalize module '%s' (y or n)", text);
+
+                    while ((c = tolower(rl_read_key())) != 'y' && c != 'n');
+
+                    if (c == 'y') {
+#endif
+                        lua_pop(M, 1);
+                        lua_setglobal(M, text);
+
+#ifdef CONFIRM_MODULE_LOAD
+                        print_output (" ...done\n");
+                        rl_on_new_line ();
+                    } else {
+                        print_output ("\n");
+                        rl_on_new_line ();
+
+                        /* If user opted against globalization, return
+                         * the module name as a match to avoid asking
+                         * the user again if the tab key is pressed
+                         * repeatedly. */
+
+                        lua_settop(M, h);
+                        return strdup(text);
+                    }
+#else
+                    print_output ("\nGlobalized module '%s'.\n", text);
+                    rl_on_new_line ();
+#endif
+                }
+
                 lua_settop(M, h - 1);
                 return NULL;
             }
