@@ -31,6 +31,8 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <signal.h>
+#include <setjmp.h>
 
 #ifdef HAVE_IOCTL
 #include <sys/ioctl.h>
@@ -117,6 +119,12 @@ static const char *colors[] = {"\033[0m",
                                "\033[1;33m",
                                "\033[1m",
                                "\033[22m"};
+
+static sigjmp_buf before_readline;
+
+void handle_interrupt(int signo) {
+    siglongjmp(before_readline, 1);
+}
 
 #ifdef HAVE_LIBREADLINE
 
@@ -1398,7 +1406,8 @@ static int describe_stack (int count, int key)
         if (h > 0) {
             print_output ("\nThe stack contains %d values.\n", h);
             for (i = 1 ; i <= h ; i += 1) {
-                print_output ("\n%d(%d):\t%s", i, -h + i - 1, lua_typename(M, lua_type(M, i)));
+                print_output ("\n%d(%d):\t%s",
+                              i, -h + i - 1, lua_typename(M, lua_type(M, i)));
             }
         } else {
             print_output ("\nThe stack is empty.");
@@ -1523,6 +1532,7 @@ void luap_getname(lua_State *L, const char **name)
 void luap_enter(lua_State *L)
 {
     int incomplete = 0, s = 0, t = 0, l;
+    struct sigaction oldsigint;
     char *line, *prepended;
 #ifdef SAVE_RESULTS
     int cleanup = 0;
@@ -1587,9 +1597,44 @@ void luap_enter(lua_State *L)
     lua_pop(L, 1);
 #endif
 
-    while ((line = readline (incomplete ?
-                             prompts[colorize][1] : prompts[colorize][0]))) {
+    sigaction(SIGINT, NULL, &oldsigint);
+
+    if (sigsetjmp(before_readline, 1) != 0) {
+        sigaction(SIGINT, &oldsigint, NULL);
+
+        /* We arrived here through siglongjmp, after receiving a
+         * sigint.  Prepare to resume reading a new command. */
+
+        rl_cleanup_after_signal ();
+
+        print_output ("\n");
+        rl_on_new_line();
+
+        incomplete = 0;
+    }
+
+    while (1) {
+        struct sigaction newsigint;
         int status;
+
+        /* Set up signal handlers to catch SIGINT and cancel the currently
+         * input line, as is done in most interactive command
+         * interpreters. */
+
+        newsigint.sa_handler = handle_interrupt;
+        newsigint.sa_flags = 0;
+        sigemptyset (&newsigint.sa_mask);
+
+        sigaction(SIGINT, &newsigint, NULL);
+
+        if (!(line = readline (incomplete ?
+                               prompts[colorize][1] : prompts[colorize][0]))) {
+            break;
+        }
+
+        /* Done reading the line, restore old handler. */
+
+        sigaction(SIGINT, &oldsigint, NULL);
 
         if (*line == '\0') {
             free(line);
