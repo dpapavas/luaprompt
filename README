@@ -28,20 +28,81 @@ luaprompt features:
   in a descriptive way that tries to be as readable as possible.  The
   formatting tries to mimic Lua code (this is done to minimize
   ambiguities and no guarantees are made that it is valid code).
-  Additionally, each value is stored in a table for future reference.
 
 * Color highlighting of error messages and variable printouts.
 
-Embedded Usage
-==============
+Installation
+============
 
-To embed luaprompt into a host application, simply compile and link
-prompt.c with your sources.  A POSIX environment is assumed and
-readline is required for proper command line editing.  If GNU Readline
-is provided, you should define the macros HAVE_LIBREADLINE and
-HAVE_READLINE_HISTORY.  You should also define HAVE_IOCTL, unless your
-environment doesn't support the TIOCGWINSZ ioctl call to get the
-terminal width.
+luaprompt is available as a rock.  It can be installed via LuaRocks with:
+
+    luarocks install luaprompt
+
+Alternatively, you can customize the behavior as described in the
+"Configuration" section.  Start by downloading and unpacking the
+sources with:
+
+    luarocks unpack luaprompt
+
+Change to the directory it was downloaded to, edit the rockspec file
+to add, remove or change the default configuration macros, and then
+build and install with:
+
+    luarocks make <rockspec-file>
+
+Standalone usage
+================
+
+Besides the luaprompt module, the rock contains a standalone
+interpreter based on luaprompt. It tries to mimic the standard Lua
+interpreter as much as possible (currently only the -E flag is not
+supported) while providing the extra set of features described above.
+          
+To invoke the interpreter, simply type "luap" instead of "lua" on the
+command line.
+
+The prompt module
+=================
+     
+Using the module is pretty straightforward, as it essentially wraps
+the calls described in the section on embedding luaprompt below.  This
+functionality is available, either in variables which can be set or
+queried, or in Lua functions.  An example session, which covers
+everything and should be self-explanatory, follows:
+
+> prompt = require "prompt"
+> prompt.colorize = true
+> prompt.name = "myprompt"
+> prompt.history = "/tmp/.myprompt_history"
+> prompt.prompts = {"%  ", "%% "}
+> prompt.enter()
+%   _G[nil] = 
+%% nil
+myprompt:2: table index is nil
+
+Stack trace:
+	#0 [C]: in function '__newindex'
+	#1 myprompt:2: in the main chunk
+	#2 [C]: in function 'enter'
+	#3 stdin:1: in the main chunk
+	#4 [C]: in function ?
+
+% ^D 
+>
+
+One can also use just the pretty-printer of luaprompt, by calling
+prompt.describe, which returns a string with a pretty print-out of the
+argument.  For example:
+
+> =prompt.describe(coroutine)
+{ 
+  create = <function: 0x41a8b0>,
+  yield = <function: 0x41a630>,
+  wrap = <function: 0x41a910>,
+  running = <function: 0x41a890>,
+  resume = <function: 0x41a9e0>,
+  status = <function: 0x41a770>,
+}
 
 Configuration
 =============
@@ -99,8 +160,19 @@ You can disable this functionality, by defining NO_MODULE_LOAD.
 Module names will then only be completed inside strings (for use with
 require).
 
-To make the auto-completer ask for confirmation before loading a
-module, define CONFIRM_MODULE_LOAD.
+To make the auto-completer ask for confirmation before loading or
+globalizing a module, define CONFIRM_MODULE_LOAD.
+
+Embedded Usage
+==============
+
+To embed luaprompt into a host application, simply compile and link
+prompt.c with your sources.  A POSIX environment is assumed and GNU
+Readline is required for proper command line editing.  If it is
+provided, you should define the macros HAVE_LIBREADLINE and
+HAVE_READLINE_HISTORY.  You should also define HAVE_IOCTL, unless your
+environment doesn't support the TIOCGWINSZ ioctl call to get the
+terminal width.
 
 The API is very simple:
 
@@ -136,7 +208,7 @@ void luap_getcolor(lua_State *L, int *enabled)
 void luap_getname(lua_State *L, const char **name)
 
 In addition to the above the following calls, which are meant for
-internal use can be used by the host applicaton as well if required.
+internal use can be used by the host application as well if required.
 
 char *luap_describe (lua_State *L, int index)
 Returns a string with a human-readable serialization of the value at
@@ -145,75 +217,6 @@ the specified index.
 int luap_call (lua_State *L, int n)
 Calls a function with n arguments and provides a stack trace on error.
 This is equivalent to calling lua_pcall with LUA_MULTRET.
-
-The prompt module
-=================
-
-luaprompt is also available as a Lua module.  It can be installed via
-LuaRocks with:
-
-    luarocks install luaprompt
-
-Alternatively, you can customize the behavior as described in the
-"Configuration" section.  Start by downloading and unpacking the
-sources with:
-
-    luarocks unpack luaprompt
-
-Change to the directory it was downloaded to, edit the file
-"luaprompt-dev-1.rockspec" to add, remove or edit the default
-configuration macros, and then build and install with:
-
-    luarocks make luaprompt-dev-1.rockspec
-     
-Using the module is pretty straightforward, as it essentially wraps
-the calls described above, either in variables which can be set or
-queried, or in Lua functions.  An example session follows:
-
-> prompt = require "prompt"
-> prompt.colorize = true
-> prompt.name = "myprompt"
-> prompt.history = "/tmp/.myprompt_history"
-> prompt.prompts = {"%  ", "%% "}
-> prompt.enter()
-%   _G[nil] = 
-%% nil
-myprompt:2: table index is nil
-
-Stack trace:
-	#0 [C]: in function '__newindex'
-	#1 myprompt:2: in the main chunk
-	#2 [C]: in function 'enter'
-	#3 stdin:1: in the main chunk
-	#4 [C]: in function ?
-
-% ^D 
->
-
-One can also use just the pretty-printer of luaprompt, by calling
-prompt.describe, which returns a string with a pretty print-out of the
-argument.  For example:
-
-> =prompt.describe(coroutine)
-{ 
-  create = <function: 0x41a8b0>,
-  yield = <function: 0x41a630>,
-  wrap = <function: 0x41a910>,
-  running = <function: 0x41a890>,
-  resume = <function: 0x41a9e0>,
-  status = <function: 0x41a770>,
-}
-
-Standalone usage
-================
-
-Although luaprompt is meant for embedded use, a standalone interpreter
-has also been written. It tries to mimic the standard lua interepreter
-as much as possible (currently only the -E flag is not supported)
-while providing the extra set of features described above.
-          
-It is installed alongside the module and can be accessed simply by
-typing "luap" instead of "lua" the command line.
 
 License
 =======
