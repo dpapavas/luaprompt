@@ -74,7 +74,7 @@ parser:flag "-i"
 
 parser:argument "SCRIPT"
    :description [[A Lua script to be executed.  Any arguments
-specfied after the script name, are passed to
+specified after the script name, are passed to
 the script.]]
    :args '*'
 

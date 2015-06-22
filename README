@@ -46,7 +46,7 @@ terminal width.
 Configuration
 =============
 
-You can use several macros in order to configure luaprmompt's
+You can use several macros in order to configure luaprompt's
 functionality, by defining them in your Makefile.  For instance, to
 pass the macro MACRO_NAME to the compiler, simply add -DMACRO_NAME, or
 -DMACRO_WITH_VALUE=\"value\" to the compile flags.
