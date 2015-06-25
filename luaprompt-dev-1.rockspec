@@ -104,6 +104,7 @@ build = {
             },
 
             defines = {
+                "_GNU_SOURCE",
                 "HAVE_LIBREADLINE",
                 "HAVE_READLINE_HISTORY",
                 "HAVE_IOCTL",
