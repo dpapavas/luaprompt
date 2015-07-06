@@ -110,6 +110,7 @@ build = {
                 "HAVE_IOCTL",
                 "COMPLETE_KEYWORDS",
                 "COMPLETE_TABLE_KEYS",
+                "COMPLETE_METATABLE_KEYS",
                 "COMPLETE_FILE_NAMES",
                 "COMPLETE_MODULES",
                 "SAVE_RESULTS",
