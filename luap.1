@@ -1,0 +1,94 @@
+.TH LUAP "1" "30 July 2015" "luap 0.6" "User Commands"
+.SH NAME
+luap \- Lua prompt with pretty-printing and autocompletion
+.SH SYNOPSIS
+.B luap
+[
+.I options
+]
+[
+.I script
+[
+.I args
+]
+]
+.SH DESCRIPTION
+.PP
+.B luaprompt
+is both an interactive Lua prompt that can be used instead
+of the official interpreter, as well as a module that provides a Lua
+command prompt that can be embedded in a host application.  As a
+standalone interpreter it provides many conveniences that are missing
+from the official Lua interpreter.  As an embedded prompt, it's meant
+for applications that use Lua as a configuration or interface language
+and can therefore benefit from an interactive prompt for debugging or
+regular use.
+.LP
+luaprompt features:
+.RS
+.LP
+Readline-based input with history and completion: In particular all
+keywords, global variables and table accesses (with string or
+integer keys) can be completed in addition to readline's standard
+file completion.  Module names are also completed, for modules
+installed in the standard directories, and completed modules can
+optionally be loaded.
+.LP
+Persistent command history (retained across sessions).
+.LP
+Proper value pretty-printing for interactive use: When an expression
+is entered at the prompt, all returned values are printed
+(prepending with an equal sign is not required).  Values are printed
+in a descriptive way that tries to be as readable as possible.  The
+formatting tries to mimic Lua code (this is done to minimize
+ambiguities and no guarantees are made that it is valid code).
+Additionally, each value is stored in a table for future reference.
+.LP
+Color highlighting of error messages and variable printouts.
+.RE
+.LP
+.B luap
+tries to mimic the standard lua interepreter
+as much as possible (currently only the -E flag is not supported)
+while providing the extra set of features described above.
+
+.SH OPTIONS
+.TP
+.BI \-e " stat"
+execute statement
+.IR stat .
+.TP
+.B \-i
+enter interactive mode after executing
+.IR script .
+.TP
+.BI \-l " name"
+execute the equivalent of
+.IB name =require(' name ')
+before executing
+.IR script .
+.TP
+.B \-v
+show version information.
+.TP
+.B \-E
+ignore environment variables.
+.B (Currently unsupported!)
+.TP
+.B \-\-
+stop handling options.
+.TP
+.B \-
+stop handling options and execute the standard input as a file.
+.SH "SEE ALSO"
+.BR lua (1)
+.br
+.BR luac (1)
+.br
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Dimitris Papavasileiou (dpapavas@gmail.com),
+Boris Nagaev
+.SH "REPORTING BUGS"
+Report dir bugs to luaprompt home page: https://github.com/dpapavas/luaprompt
