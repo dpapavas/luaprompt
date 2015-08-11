@@ -1,17 +1,29 @@
-.TH LUAP "1" "30 July 2015" "luap 0.6" "User Commands"
+.TH LUAP "1" "11 Aug 2015" "luap 0.6" "User Commands"
 .SH NAME
 luap \- Lua prompt with pretty-printing and autocompletion
 .SH SYNOPSIS
 .B luap
 [
-.I options
+.BI \-e "\| STMT\^"
 ]
 [
-.I script
+.BI \-l "\| NAME\^"
+]
 [
-.I args
+.B \-p
 ]
+[
+.B \-v
 ]
+[
+.B \-i
+]
+[
+.B \-h
+]
+[
+.B "<SCRIPT>"
+] ...
 .SH DESCRIPTION
 .PP
 .B luaprompt
@@ -24,18 +36,19 @@ for applications that use Lua as a configuration or interface language
 and can therefore benefit from an interactive prompt for debugging or
 regular use.
 .LP
-luaprompt features:
-.RS
-.LP
+.B luaprompt
+features:
+.RS 2
+.IP \(bu 2
 Readline-based input with history and completion: In particular all
 keywords, global variables and table accesses (with string or
-integer keys) can be completed in addition to readline's standard
+integer keys) can be completed in addition to Readline's standard
 file completion.  Module names are also completed, for modules
 installed in the standard directories, and completed modules can
 optionally be loaded.
-.LP
+.IP \(bu
 Persistent command history (retained across sessions).
-.LP
+.IP \(bu
 Proper value pretty-printing for interactive use: When an expression
 is entered at the prompt, all returned values are printed
 (prepending with an equal sign is not required).  Values are printed
@@ -43,52 +56,110 @@ in a descriptive way that tries to be as readable as possible.  The
 formatting tries to mimic Lua code (this is done to minimize
 ambiguities and no guarantees are made that it is valid code).
 Additionally, each value is stored in a table for future reference.
-.LP
+.IP \(bu
 Color highlighting of error messages and variable printouts.
 .RE
 .LP
 .B luap
-tries to mimic the standard lua interepreter
+tries to mimic the standard Lua interpreter
 as much as possible (currently only the -E flag is not supported)
 while providing the extra set of features described above.
 
+All option arguments start with a single hyphen, followed by a letter.
+Multiple consecutive options can be specified by their respective
+letters following a single hyphen.
+
+Anything that does not follow this format is interpreted, either as a
+script file, which is to be executed (if it is the first non-option
+argument), or as an argument that is to be passed to the script (for
+subsequent non-option arguments).  A single hyphen is interpreted as
+a request to execute the standard input.
+
+If no options are passed,
+.B luap
+enters interactive mode, as if the
+.I \-i
+option had been specified.
+
 .SH OPTIONS
+.PP
+.B luap
+accepts the following options:
+.PP
+.PD 0
+.TP 10
+.BI \-e "\| STMT\^"
+Execute string
+.IR STMT .
 .TP
-.BI \-e " stat"
-execute statement
-.IR stat .
+.BI \-l "\| NAME\^"
+Require library
+.IR NAME .
 .TP
-.B \-i
-enter interactive mode after executing
-.IR script .
-.TP
-.BI \-l " name"
-execute the equivalent of
-.IB name =require(' name ')
-before executing
-.IR script .
+.B \-p
+Force plain, uncolored output.
 .TP
 .B \-v
-show version information.
+Print version information.
 .TP
-.B \-E
-ignore environment variables.
-.B (Currently unsupported!)
+.B \-i
+Enter interactive mode.
+.TP
+.B \-h
+Show this help message and exit.
 .TP
 .B \-\-
-stop handling options.
+Stop processing arguments.  The rest of the line is interpreted a
+script file to execute, optionally followed by arguments that should
+be passed to the script.
+.PD
+.PP
+When
+.B luap
+is used with LuaJIT, the following additional arguments are also understood:
+.PP
+.PD 0
+.TP 10
+.BI \-j "\| CMD\^"
+Perform LuaJIT control command.
 .TP
-.B \-
-stop handling options and execute the standard input as a file.
+.BI \-O "\| OPT\^"
+Control LuaJIT optimizations.
+.PD
+
+.SH CONFIGURATION
+.BR luaprompt "'s"
+and subsequently
+.BR luap "'s"
+functionality, can be customized at build-time.  See the
+documentation accompanying the source code for more details.
+
+Additionally, you can customize
+.BR luap "'s"
+command line interface, as it is based on
+.BR "GNU Readline" .
+This includes the ability to change behavior, such as how completion is performed, define additional keybindings or redefine existing ones, define custom macros and other possibilities.  It is therefore highly recommended to consult
+.BR readline (3)
+for more information.
+
+Note that
+.B luaprompt
+sets its application name, so that you can have custom Readline
+configuration, that will be effective for
+.B luaprompt
+only (thus not affecting every other Readline-enabled application on
+your system).  You can achieve that using
+.BR $if " ... " $endif
+conditional constructs within Readline's initialization file.  Again, see
+.BR readline (3)
+for more information.
+
 .SH "SEE ALSO"
-.BR lua (1)
-.br
-.BR luac (1)
-.br
-.SH BUGS
-No known bugs.
+.BR lua (1),
+.BR luac (1),
+.BR readline (3)
+
 .SH AUTHOR
-Dimitris Papavasileiou (dpapavas@gmail.com),
-Boris Nagaev
+Dimitris Papavasileiou (dpapavas@gmail.com), Boris Nagaev
 .SH "REPORTING BUGS"
-Report dir bugs to luaprompt home page: https://github.com/dpapavas/luaprompt
+Please report bugs at the luaprompt home page at https://github.com/dpapavas/luaprompt.
