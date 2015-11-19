@@ -78,3 +78,16 @@
 	- Fixed filename completions to allow continuing completion into
 	  subdirectories.
 	- Various bugfixes.
+
+2015-11-19  Dimitris Papavasileiou  <dpapavas@gmail.com>
+
+	* Released version 0.7 with the following improvements:
+
+	- Luap now sets rl_readline_name, to allow luaprompt-specific
+	  readline configuration.
+	- Added globalization of already loaded modules, which are not in
+	the globals table.
+	- Added a Makefile to allow building and installing without
+	Luarocks.
+	- Added a manpage (not installable via LuaRocks).
+	- Various bugfixes.

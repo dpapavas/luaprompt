@@ -52,7 +52,8 @@ luaprompt features:
   installed in the standard directories, and completed modules can
   optionally be loaded.
 
-* Persistent command history (retained across sessions).
+* Persistent command history (retained across sessions), as well as
+  recording of command results for future reference.
 
 * Proper value pretty-printing for interactive use: When an expression
   is entered at the prompt, all returned values are printed
