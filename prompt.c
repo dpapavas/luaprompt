@@ -1529,6 +1529,79 @@ void luap_getname(lua_State *L, const char **name)
     *name = chunkname + 1;
 }
 
+int luap_dostring(lua_State *L, const char* line, size_t sz)
+{
+    if (!initialized) {
+#ifdef HAVE_LIBREADLINE
+        rl_readline_name = "luaprompt";
+        rl_basic_word_break_characters = " \t\n`@$><=;|&{(";
+        rl_completion_entry_function = generator;
+        rl_completion_display_matches_hook = display_matches;
+
+        rl_add_defun ("lua-describe-stack", describe_stack, META('s'));
+#endif
+
+#ifdef HAVE_READLINE_HISTORY
+        /* Load the command history if there is one. */
+
+        if (logfile) {
+            read_history (logfile);
+        }
+#endif
+        if (!chunkname) {
+            luap_setname (L, "lua");
+        }
+
+        if (!prompts[0][0]) {
+            luap_setprompts (L, ">  ", ">> ");
+        }
+
+        atexit (finish);
+
+        initialized = 1;
+    }
+    M = L;
+    int status, incomplete = 0;
+
+
+    status = luaL_loadbuffer(L, line, sz, chunkname);
+
+    incomplete = 0;
+
+    if (status == LUA_ERRSYNTAX) {
+        const char *message;
+        const int k = sizeof(EOF_MARKER) / sizeof(char) - 1;
+        size_t n;
+
+        message = lua_tolstring (L, -1, &n);
+
+        /* If the error message mentions an unexpected eof
+         * then consider this a multi-line statement and wait
+         * for more input.  If not then just print the error
+         * message.*/
+
+        if ((int)n > k &&
+            !strncmp (message + n - k, EOF_MARKER, k)) {
+            incomplete = 1;
+        } else {
+            print_error ("%s%s%s\n", COLOR(1), lua_tostring (L, -1),
+                COLOR(0));
+        }
+
+        lua_pop (L, 1);
+    } else if (status == LUA_ERRMEM) {
+        print_error ("%s%s%s\n", COLOR(1), lua_tostring (L, -1),
+            COLOR(0));
+        lua_pop (L, 1);
+    } else {
+        /* Try to execute the loaded chunk. */
+
+        execute ();
+        incomplete = 0;
+    }
+    return incomplete;
+}
+
 void luap_enter(lua_State *L)
 {
     int incomplete = 0, s = 0, t = 0, l;
@@ -1677,42 +1750,8 @@ void luap_enter(lua_State *L)
             lua_pop (L, 1);
 
             /* Try to execute the line as-is. */
+            incomplete = luap_dostring(L, buffer, s);
 
-            status = luaL_loadbuffer(L, buffer, s, chunkname);
-
-            incomplete = 0;
-
-            if (status == LUA_ERRSYNTAX) {
-                const char *message;
-                const int k = sizeof(EOF_MARKER) / sizeof(char) - 1;
-                size_t n;
-
-                message = lua_tolstring (L, -1, &n);
-
-                /* If the error message mentions an unexpected eof
-                 * then consider this a multi-line statement and wait
-                 * for more input.  If not then just print the error
-                 * message.*/
-
-                if ((int)n > k &&
-                    !strncmp (message + n - k, EOF_MARKER, k)) {
-                    incomplete = 1;
-                } else {
-                    print_error ("%s%s%s\n", COLOR(1), lua_tostring (L, -1),
-                                 COLOR(0));
-                }
-
-                lua_pop (L, 1);
-            } else if (status == LUA_ERRMEM) {
-                print_error ("%s%s%s\n", COLOR(1), lua_tostring (L, -1),
-                             COLOR(0));
-                lua_pop (L, 1);
-            } else {
-                /* Try to execute the loaded chunk. */
-
-                execute ();
-                incomplete = 0;
-            }
         }
 
 #ifdef HAVE_READLINE_HISTORY

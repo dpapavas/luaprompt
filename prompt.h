@@ -39,6 +39,11 @@ void luap_gethistory(lua_State *L, const char **file);
 void luap_getcolor(lua_State *L, int *enabled);
 void luap_getname(lua_State *L, const char **name);
 
+
+/* Execute a string as if it was typed into the prompt.
+ * Returns 1 if the string is incomplete, and 0 otherwise. */
+int luap_dostring(lua_State *L, const char* line, size_t sz);
+
 void luap_enter(lua_State *L);
 char *luap_describe (lua_State *L, int index);
 int luap_call (lua_State *L, int n);
