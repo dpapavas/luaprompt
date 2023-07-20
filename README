@@ -60,7 +60,16 @@ interpreter as much as possible (currently only the -E flag is not
 supported) while providing the extra set of features described above.
           
 To invoke the interpreter, simply type "luap" instead of "lua" on the
-command line.
+command line.  If a file named ".luarc" exists in the user's home
+directory, it is loaded and executed at startup.  Custom
+configuration, or startup actions can be placed there.
+
+As an example, an rc file setting alternate prompts and history file
+locations, would contain something like the following:
+
+local prompt = require "prompt"
+prompt.history = "/tmp/lua_history"
+prompt.prompts = {"%  ", "%% "}
 
 The prompt module
 =================

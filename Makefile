@@ -1,4 +1,4 @@
-VERSION = 5.3
+VERSION = 5.4
 PREFIX = /usr/local
 BINDIR = ${PREFIX}/bin
 LIBDIR = $(PREFIX)/lib/lua/${VERSION}

@@ -207,5 +207,20 @@ if interactive then
    prompt.colorize = not args.p
    prompt.history = os.getenv('HOME') .. '/.lua_history'
 
+   local name = os.getenv('HOME') .. '/.luarc'
+
+   local f = io.open(name, "r")
+   if f ~= nil then
+      io.close(f)
+
+      chunk, message = loadfile(name)
+
+      if chunk then
+         chunk()
+      else
+         print(message)
+      end
+   end
+
    prompt.enter()
 end
