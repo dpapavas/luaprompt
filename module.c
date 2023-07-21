@@ -70,14 +70,22 @@ static void update_index (lua_State *L)
     }
 
     if (!strcmp(k, "prompts")) {
-        const char *single, *multi;
+        const char *prompts[2];
+        int i;
 
-        luap_getprompts(L, &single, &multi);
+        luap_getprompts(L, &prompts[0], &prompts[1]);
         lua_newtable(L);
-        lua_pushstring(L, single);
+        luap_getpromptfuncs(L);
+
+        for (i = 0 ; i < 2 ; i += 1) {
+            if (lua_isnil (L, i - 2)) {
+                lua_pushstring(L, prompts[i]);
+                lua_replace(L, i - 3);
+            }
+        }
+
+        lua_rawseti(L, -3, 2);
         lua_rawseti(L, -2, 1);
-        lua_pushstring(L, multi);
-        lua_rawseti(L, -2, 2);
     } else if (!strcmp(k, "colorize")) {
         int colorize;
 
@@ -119,15 +127,25 @@ static int prompt_newindex (lua_State *L)
     }
 
     if (!strcmp(k, "prompts")) {
-        const char *single, *multi;
+        const char *prompts[2];
+        int i;
 
-        lua_rawgeti(L, 3, 1);
-        single = lua_tostring(L, -1);
-        lua_rawgeti(L, 3, 2);
-        multi = lua_tostring(L, -1);
-        lua_pop(L, 2);
+        for (i = 0 ; i < 2 ; i += 1) {
+            lua_rawgeti(L, 3, i + 1);
+            if (lua_isstring(L, -1)) {
+                prompts[i] = lua_tostring(L, -1);
+            } else {
+                prompts[i] = "";
+            }
 
-        luap_setprompts(L, single, multi);
+            if (!lua_isfunction(L, -1)) {
+                lua_pop(L, 1);
+                lua_pushnil(L);
+            }
+        }
+
+        luap_setprompts(L, prompts[0], prompts[1]);
+        luap_setpromptfuncs(L);
     } else if (!strcmp(k, "colorize")) {
         luap_setcolor(L, lua_toboolean(L, 3));
     } else if (!strcmp(k, "history")) {

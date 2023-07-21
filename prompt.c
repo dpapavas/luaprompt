@@ -104,6 +104,7 @@ static char *readline(char *prompt)
 static lua_State *M;
 static int initialized = 0;
 static char *logfile, *chunkname, *prompts[2][2], *buffer = NULL;
+static int prompt_funcs[2] = {LUA_REFNIL, LUA_REFNIL};
 
 #ifdef SAVE_RESULTS
 static int results = LUA_REFNIL, results_n = 0;
@@ -1455,28 +1456,43 @@ int luap_call (lua_State *L, int n) {
     return status;
 }
 
-void luap_setprompts(lua_State *L, const char *single, const char *multi)
+static void update_prompt(int i, const char *s)
 {
     /* Plain, uncolored prompts. */
 
-    prompts[0][0] = (char *)realloc (prompts[0][0], strlen (single) + 1);
-    prompts[0][1] = (char *)realloc (prompts[0][1], strlen (multi) + 1);
-    strcpy(prompts[0][0], single);
-    strcpy(prompts[0][1], multi);
+    prompts[0][i] = (char *)realloc (prompts[0][i], strlen (s) + 1);
+    strcpy(prompts[0][i], s);
 
     /* Colored prompts. */
 
-    prompts[1][0] = (char *)realloc (prompts[1][0], strlen (single) + 16);
-    prompts[1][1] = (char *)realloc (prompts[1][1], strlen (multi) + 16);
+    prompts[1][i] = (char *)realloc (prompts[1][i], strlen (s) + 16);
 #ifdef HAVE_LIBREADLINE
-    sprintf (prompts[1][0], "\001%s\002%s\001%s\002",
-             COLOR(6), single, COLOR(0));
-    sprintf (prompts[1][1], "\001%s\002%s\001%s\002",
-             COLOR(6), multi, COLOR(0));
+    sprintf (prompts[1][i], "\001%s\002%s\001%s\002", COLOR(6), s, COLOR(0));
 #else
-    sprintf (prompts[1][0], "%s%s%s", COLOR(6), single, COLOR(0));
-    sprintf (prompts[1][1], "%s%s%s", COLOR(6), multi, COLOR(0));
+    sprintf (prompts[1][i], "%s%s%s", COLOR(6), s, COLOR(0));
 #endif
+}
+
+void luap_setprompts(lua_State *L, const char *single, const char *multi)
+{
+    update_prompt(0, single);
+    update_prompt(1, multi);
+}
+
+void luap_setpromptfuncs(lua_State *L)
+{
+    int i;
+
+    for (i = 1 ; i >= 0 ; i -= 1) {
+        luaL_unref (L, LUA_REGISTRYINDEX, prompt_funcs[i]);
+
+        if (!lua_isfunction (L, -1)) {
+            lua_pop(L, 1);
+            lua_pushnil(L);
+        }
+
+        prompt_funcs[i] = luaL_ref (L, LUA_REGISTRYINDEX);
+    }
 }
 
 void luap_sethistory(lua_State *L, const char *file)
@@ -1512,6 +1528,16 @@ void luap_getprompts(lua_State *L, const char **single, const char **multi)
 {
     *single = prompts[0][0];
     *multi = prompts[0][1];
+}
+
+void luap_getpromptfuncs(lua_State *L)
+{
+    int i;
+
+    for (i = 0 ; i < 2 ; i += 1) {
+        lua_rawgeti (L, LUA_REGISTRYINDEX, prompt_funcs[i]);
+    }
+
 }
 
 void luap_gethistory(lua_State *L, const char **file)
@@ -1626,6 +1652,19 @@ void luap_enter(lua_State *L)
         sigemptyset (&newsigint.sa_mask);
 
         sigaction(SIGINT, &newsigint, NULL);
+
+        /* Update the prompt, if required. */
+
+        if (prompt_funcs[incomplete] != LUA_REFNIL) {
+            lua_rawgeti (L, LUA_REGISTRYINDEX, prompt_funcs[incomplete]);
+            if (lua_pcall (L, 0, 1, 0) == LUA_OK) {
+                if (lua_isstring (L, -1)) {
+                    update_prompt(incomplete, lua_tostring(L, -1));
+                }
+            }
+
+            lua_pop (L, 1);
+        }
 
         if (!(line = readline (incomplete ?
                                prompts[colorize][1] : prompts[colorize][0]))) {

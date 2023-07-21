@@ -84,7 +84,10 @@ everything and should be self-explanatory, follows:
 > prompt.colorize = true
 > prompt.name = "myprompt"
 > prompt.history = "/tmp/.myprompt_history"
-> prompt.prompts = {"%  ", "%% "}
+> prompt.prompts = {
+>>    function () return string.format("(%d)%% ", os.time()) end,
+>>    "%% "
+>> }
 > prompt.enter()
 %   _G[nil] = 
 %% nil
@@ -212,6 +215,14 @@ void luap_setprompts (lua_State *L, const char *single, char *multi)
 Provide two prompts, one for single-line and one for multi-line
 input. The defaults prompts are "> " and ">> ".
 
+void luap_setpromptfuncs (lua_State *L)
+Pops two values off the stack and, if they're functions, uses them as
+prompt generators, for single and multi-line prompts respectively.  If
+any of the supplied values are not functions, the prompts set via
+luap_setprompts above, or the last generated prompts are used.  The
+supplied functions should return a string (which will be used as a
+prompt).
+
 void luap_sethistory (lua_State *L, const char *file) Set the file to
 be used to perist the command history across sessions.  If this
 function isn't called the command history is lost on session exit.
@@ -227,6 +238,7 @@ There are also matching luap_get* calls, which work much like you'd
 expect them to:
 
 void luap_getprompts(lua_State *L, const char **single, const char **multi)
+void luap_getpromptfuncs(lua_State *L)
 void luap_gethistory(lua_State *L, const char **file)
 void luap_getcolor(lua_State *L, int *enabled)
 void luap_getname(lua_State *L, const char **name)
