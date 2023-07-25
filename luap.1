@@ -1,4 +1,4 @@
-.TH LUAP "1" "11 Aug 2015" "luap 0.7" "User Commands"
+.TH LUAP "1" "25 Jul 2023" "luap 0.8" "User Commands"
 .SH NAME
 luap \- Lua prompt with pretty-printing and autocompletion
 .SH SYNOPSIS
@@ -62,25 +62,26 @@ Color highlighting of error messages and variable printouts.
 .RE
 .LP
 .B luap
-tries to mimic the standard Lua interpreter
-as much as possible (currently only the -E flag is not supported)
-while providing the extra set of features described above.
-
-All option arguments start with a single hyphen, followed by a letter.
-Multiple consecutive options can be specified by their respective
-letters following a single hyphen.
-
-Anything that does not follow this format is interpreted, either as a
-script file, which is to be executed (if it is the first non-option
-argument), or as an argument that is to be passed to the script (for
-subsequent non-option arguments).  A single hyphen is interpreted as
-a request to execute the standard input.
-
+tries to mimic the standard Lua interpreter as much as possible
+(currently only the -E flag is not supported) while providing the
+extra set of features described above.  All option arguments start
+with a single hyphen, followed by a letter.  Multiple consecutive
+options can be specified by their respective letters following a
+single hyphen.  Anything that does not follow this format is
+interpreted, either as a script file, which is to be executed (if it
+is the first non-option argument), or as an argument that is to be
+passed to the script (for subsequent non-option arguments).  A single
+hyphen is interpreted as a request to execute the standard input.
 If no options are passed,
 .B luap
 enters interactive mode, as if the
 .I \-i
 option had been specified.
+
+A file with custom configuration, or startup actions can be placed
+either at \fI~/.luaprc.lua\fP, or alternatively at
+\fI~/.config/luaprc.lua\fP.  The first of these to be found is loaded
+and executed at startup.
 
 .SH OPTIONS
 .PP
@@ -155,12 +156,13 @@ conditional constructs within Readline's initialization file.  Again, see
 .BR readline (3)
 for more information.
 
+
 .SH "SEE ALSO"
 .BR lua (1),
 .BR luac (1),
 .BR readline (3)
 
 .SH AUTHOR
-Dimitris Papavasileiou (dpapavas@gmail.com), Boris Nagaev
+Dimitris Papavasileiou (dpapavas@protonmail.ch), Boris Nagaev
 .SH "REPORTING BUGS"
 Please report bugs at the luaprompt home page at https://github.com/dpapavas/luaprompt.

@@ -1,6 +1,6 @@
 luaprompt
 
-Copyright (C) 2012-2015 Dimitris Papavasileiou <dpapavas@gmail.com>
+Copyright (C) 2012-2023 Dimitris Papavasileiou <dpapavas@protonmail.ch>
 
 luaprompt is both an interactive Lua prompt that can be used instead
 of the official interpreter, as well as a module that provides a Lua

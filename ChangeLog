@@ -91,3 +91,11 @@
 	Luarocks.
 	- Added a manpage (not installable via LuaRocks).
 	- Various bugfixes.
+
+2023-07-25  Dimitris Papavasileiou  <dpapavas@protonmail.ch>
+
+	* Released version 0.8 with the following improvements:
+
+	- Luap now loads and executes a file at startup, allowing custom
+	  configuration and startup actions.
+	- Added support for dynamic prompts.
