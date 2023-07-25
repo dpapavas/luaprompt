@@ -60,9 +60,10 @@ interpreter as much as possible (currently only the -E flag is not
 supported) while providing the extra set of features described above.
           
 To invoke the interpreter, simply type "luap" instead of "lua" on the
-command line.  If a file named ".luarc" exists in the user's home
-directory, it is loaded and executed at startup.  Custom
-configuration, or startup actions can be placed there.
+command line.  A file with custom configuration, or startup actions
+can be placed either at "~/.luaprc.lua", or, alternatively, at
+"~/.config/luaprc.lua".  The first of these to be found is loaded and
+executed at startup.
 
 As an example, an rc file setting alternate prompts and history file
 locations, would contain something like the following:
