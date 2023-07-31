@@ -25,7 +25,7 @@ version = "dev-1"
 supported_platforms = {"!windows", "!win32"}
 
 source = {
-    url = "git://github.com/dpapavas/luaprompt.git",
+    url = "git+https://github.com/dpapavas/luaprompt.git",
 }
 
 description = {
