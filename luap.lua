@@ -35,6 +35,7 @@ local parser = argparse()
    :name "luap"
    :description "A Lua command prompt with pretty-printing and auto-completion."
    :add_help "-h"
+   :add_complete({hidden=true})
 
 -- Options
 
