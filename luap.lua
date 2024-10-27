@@ -22,7 +22,7 @@
 -- CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-local version = "0.8"
+local version = "0.9"
 local copyright = "luap " .. version ..
    " Copyright (C) 2012-2023 Dimitris Papavasiliou, Boris Nagaev"
 

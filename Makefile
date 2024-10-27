@@ -24,14 +24,19 @@ CFLAGS += -DCOMPLETE_KEYWORDS     # Keywords such as for, while, etc.
 CFLAGS += -DCOMPLETE_MODULES      # Module names.
 CFLAGS += -DCOMPLETE_TABLE_KEYS   # Table keys, including global variables.
 CFLAGS += -DCOMPLETE_METATABLE_KEYS # Keys in the __index metafield, if
-                                          # it exists and is a table.
+                                    # it exists and is a table.
 CFLAGS += -DCOMPLETE_FILE_NAMES   # File names.
 
 # Comment out the following to disable tracking of results.  When
 # enabled each returned value, that is, each value the prompt prints
 # out, is also added to a table for future reference.
 
-CFLAGS += '-DSAVE_RESULTS'
+CFLAGS += -DSAVE_RESULTS
+
+# Comment out to disable escaping of strings.  This affects both
+# luap_describe and string results printed out by the prompt.
+
+CFLAGS += -DESCAPE_STRINGS
 
 # The name of the table holding the results can be configured below.
 
@@ -41,7 +46,7 @@ CFLAGS += '-DRESULTS_TABLE_NAME="_"'
 # so as not to interfere with garbage collection.  To enable this
 # uncomment the second line below.
 
-# CFLAGS += '-DWEAK_RESULTS'
+# CFLAGS += -DWEAK_RESULTS
 
 # Uncomment the following line and customize the prefix as desired to
 # keep the auto-completer from considering certain table keys (and

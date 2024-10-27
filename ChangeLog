@@ -99,3 +99,11 @@
 	- Luap now loads and executes a file at startup, allowing custom
 	  configuration and startup actions.
 	- Added support for dynamic prompts.
+
+2024-10-27  Dimitris Papavasileiou  <dpapavas@protonmail.ch>
+
+	* Released version 0.9 with the following improvements:
+
+	- Added ESCAPE_STRINGS configuration option, controlling whether
+	  strings results returned by luap_describe or printed out by the
+	  prompt, are escaped or left unchanged.

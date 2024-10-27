@@ -27,7 +27,7 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-#define LUAP_VERSION "0.8"
+#define LUAP_VERSION "0.9"
 
 void luap_setprompts(lua_State *L, const char *single, const char *multi);
 void luap_setpromptfuncs(lua_State *L);

@@ -1118,12 +1118,13 @@ static void describe (lua_State *L, int index)
             }
             dump_literal ("]");
         } else {
-            /* Escape the string as needed and print it as a normal
-             * string. */
-
             dump_literal ("\"");
 
             for (i = 0 ; i < (int)n ; i += 1) {
+#ifdef ESCAPE_STRINGS
+                /* Escape the string as needed and print it as a normal
+                 * string. */
+
                 if (s[i] == '"' || s[i] == '\\') {
                     dump_literal ("\\");
                     dump_character (s[i]);
@@ -1150,6 +1151,9 @@ static void describe (lua_State *L, int index)
                     n = sprintf (t, "\\%03u", ((unsigned char *)s)[i]);
                     dump_string (t, n);
                 }
+#else
+                dump_character (s[i]);
+#endif
             }
 
             dump_literal ("\"");
