@@ -34,11 +34,13 @@ void luap_setpromptfuncs(lua_State *L);
 void luap_sethistory(lua_State *L, const char *file);
 void luap_setname(lua_State *L, const char *name);
 void luap_setcolor(lua_State *L, int enable);
+void luap_setescape(lua_State *L, int enable);
 
 void luap_getprompts(lua_State *L, const char **single, const char **multi);
 void luap_getpromptfuncs(lua_State *L);
 void luap_gethistory(lua_State *L, const char **file);
 void luap_getcolor(lua_State *L, int *enabled);
+void luap_getescape(lua_State *L, int *enabled);
 void luap_getname(lua_State *L, const char **name);
 
 void luap_enter(lua_State *L);

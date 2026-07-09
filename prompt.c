@@ -111,6 +111,7 @@ static int results = LUA_REFNIL, results_n = 0;
 #endif
 
 static int colorize = 1;
+static int escape_strings = 1;
 static const char *colors[] = {"\033[0m",
                                "\033[0;31m",
                                "\033[1;31m",
@@ -1121,39 +1122,39 @@ static void describe (lua_State *L, int index)
             dump_literal ("\"");
 
             for (i = 0 ; i < (int)n ; i += 1) {
-#ifdef ESCAPE_STRINGS
-                /* Escape the string as needed and print it as a normal
-                 * string. */
+                if (escape_strings) {
+                    /* Escape the string as needed and print it as a normal
+                     * string. */
 
-                if (s[i] == '"' || s[i] == '\\') {
-                    dump_literal ("\\");
-                    dump_character (s[i]);
-                } else if (s[i] == '\a') {
-                    dump_literal ("\\a");
-                } else if (s[i] == '\b') {
-                    dump_literal ("\\b");
-                } else if (s[i] == '\f') {
-                    dump_literal ("\\f");
-                } else if (s[i] == '\n') {
-                    dump_literal ("\\n");
-                } else if (s[i] == '\r') {
-                    dump_literal ("\\r");
-                } else if (s[i] == '\t') {
-                    dump_literal ("\\t");
-                } else if (s[i] == '\v') {
-                    dump_literal ("\\v");
-                } else if (isprint(s[i])) {
-                    dump_character (s[i]);
+                    if (s[i] == '"' || s[i] == '\\') {
+                        dump_literal ("\\");
+                        dump_character (s[i]);
+                    } else if (s[i] == '\a') {
+                        dump_literal ("\\a");
+                    } else if (s[i] == '\b') {
+                        dump_literal ("\\b");
+                    } else if (s[i] == '\f') {
+                        dump_literal ("\\f");
+                    } else if (s[i] == '\n') {
+                        dump_literal ("\\n");
+                    } else if (s[i] == '\r') {
+                        dump_literal ("\\r");
+                    } else if (s[i] == '\t') {
+                        dump_literal ("\\t");
+                    } else if (s[i] == '\v') {
+                        dump_literal ("\\v");
+                    } else if (isprint(s[i])) {
+                        dump_character (s[i]);
+                    } else {
+                        char t[5];
+                        size_t n;
+
+                        n = sprintf (t, "\\%03u", ((unsigned char *)s)[i]);
+                        dump_string (t, n);
+                    }
                 } else {
-                    char t[5];
-                    size_t n;
-
-                    n = sprintf (t, "\\%03u", ((unsigned char *)s)[i]);
-                    dump_string (t, n);
+                    dump_character (s[i]);
                 }
-#else
-                dump_character (s[i]);
-#endif
             }
 
             dump_literal ("\"");
@@ -1521,6 +1522,11 @@ void luap_setcolor(lua_State *L, int enable)
     }
 }
 
+void luap_setescape(lua_State *L, int enable)
+{
+    escape_strings = enable;
+}
+
 void luap_setname(lua_State *L, const char *name)
 {
     chunkname = (char *)realloc (chunkname, strlen(name) + 2);
@@ -1552,6 +1558,11 @@ void luap_gethistory(lua_State *L, const char **file)
 void luap_getcolor(lua_State *L, int *enabled)
 {
     *enabled = colorize;
+}
+
+void luap_getescape(lua_State *L, int *enabled)
+{
+    *enabled = escape_strings;
 }
 
 void luap_getname(lua_State *L, const char **name)
