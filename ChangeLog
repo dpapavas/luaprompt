@@ -107,3 +107,13 @@
 	- Added ESCAPE_STRINGS configuration option, controlling whether
 	  strings results returned by luap_describe or printed out by the
 	  prompt, are escaped or left unchanged.
+
+2026-08-02  Dimitris Papavasileiou  <dpapavas@protonmail.ch>
+
+	* Released version 0.10 with the following improvements:
+
+	- The ESCAPE_STRINGS compile-time macro was replaced with the
+	  escape_strings configuration field, allowing escaping of strings
+	  to be configured at runtime.
+	- Completion of the global keyword has been added when building
+	  against Lua 5.5.

@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
--- Copyright (C) 2012-2023 Dimitris Papavasiliou, Boris Nagaev
+-- Copyright (C) 2012-2026 Dimitris Papavasiliou, Boris Nagaev
 --
 -- Permission is hereby granted, free of charge, to any person
 -- obtaining a copy of this software and associated documentation
@@ -22,9 +22,9 @@
 -- CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-local version = "0.9"
+local version = "0.10"
 local copyright = "luap " .. version ..
-   " Copyright (C) 2012-2023 Dimitris Papavasiliou, Boris Nagaev"
+   " Copyright (C) 2012-2026 Dimitris Papavasiliou, Boris Nagaev"
 
 local prompt = require "prompt"
 local argparse = require "argparse"

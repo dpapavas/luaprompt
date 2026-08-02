@@ -1,6 +1,6 @@
 luaprompt
 
-Copyright (C) 2012-2023 Dimitris Papavasileiou <dpapavas@protonmail.ch>
+Copyright (C) 2012-2026 Dimitris Papavasileiou <dpapavas@protonmail.ch>
 
 luaprompt is both an interactive Lua prompt that can be used instead
 of the official interpreter, as well as a module that provides a Lua
@@ -72,6 +72,16 @@ local prompt = require "prompt"
 prompt.history = "/tmp/lua_history"
 prompt.prompts = {"%  ", "%% "}
 
+When Lua's standalone interpreter prints out strings, it simply writes
+them to standard output.  This means that if you enter the string
+"\b\n", it will print out empty lines.
+
+By default, luap will print out an escaped represtantion of the string
+instead.  If you want to match Lua's behavior add the following to
+your rc file:
+
+prompt.escape_strings = false
+
 The prompt module
 =================
      
@@ -121,11 +131,11 @@ argument.  For example:
 Configuration
 =============
 
-You can customize luaprompts command line interface, as it is based on
-GNU Readline.  This includes the ability to change behavior, such as
-how completion is performed, define additional keybindings or redefine
-existing ones, define custom macros and other possibilities.  It is
-therefore highly recommended to consult the Readline's documentation
+You can customize luaprompt's command line interface, as it is based
+on GNU Readline.  This includes the ability to change behavior, such
+as how completion is performed, define additional keybindings or
+redefine existing ones, define custom macros and other possibilities.
+It is therefore highly recommended to consult Readline's documentation
 for more information.
 
 Note that luaprompt sets its application name, so that you can have
@@ -159,8 +169,6 @@ defining RESULTS_TABLE_NAME to the desired table name (as a C string).
 The table holding the results, can also be made to have weak values,
 so as not to interfere with garbage collection.  To enable this,
 define WEAK_RESULTS.
-
-Uncomment the following line and customize the prefix as desired to
 
 You can keep the auto-completer from considering certain table keys
 (and hence global variables) for completion, based on their prefix.
@@ -235,6 +243,10 @@ void luap_setcolor (lua_State *L, int enable)
 Setting enable to zero disables color output.  Color output is enabled
 by default if the output has not been redirected to a file or pipe.
 
+void luap_setescape(lua_State *L, int enable)
+Setting enable to zero disables escaping of strings.  This affects
+both luap_describe and string results printed out by the prompt.
+
 There are also matching luap_get* calls, which work much like you'd
 expect them to:
 
@@ -242,6 +254,7 @@ void luap_getprompts(lua_State *L, const char **single, const char **multi)
 void luap_getpromptfuncs(lua_State *L)
 void luap_gethistory(lua_State *L, const char **file)
 void luap_getcolor(lua_State *L, int *enabled)
+void luap_getescape(lua_State *L, int *enabled)
 void luap_getname(lua_State *L, const char **name)
 
 In addition to the above the following calls, which are meant for

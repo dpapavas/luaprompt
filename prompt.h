@@ -1,4 +1,4 @@
-/* Copyright (C) 2012-2023 Dimitris Papavasiliou, Boris Nagaev
+/* Copyright (C) 2012-2026 Dimitris Papavasiliou, Boris Nagaev
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,7 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-#define LUAP_VERSION "0.9"
+#define LUAP_VERSION "0.10"
 
 void luap_setprompts(lua_State *L, const char *single, const char *multi);
 void luap_setpromptfuncs(lua_State *L);

@@ -1,4 +1,4 @@
-/* Copyright (C) 2012-2023 Dimitris Papavasiliou, Boris Nagaev
+/* Copyright (C) 2012-2026 Dimitris Papavasiliou, Boris Nagaev
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -217,7 +217,7 @@ int luaopen_prompt(lua_State* L) {
     lua_createtable(L, 2, 0);
     lua_pushstring(L,
                    "luaprompt " LUAP_VERSION " Copyright (C) "
-                   "2012-2023 Dimitris Papavasiliou, Boris Nagaev" );
+                   "2012-2026 Dimitris Papavasiliou, Boris Nagaev" );
     lua_rawseti(L, -2, 1);
 
 #if LUA_VERSION_NUM == 501
