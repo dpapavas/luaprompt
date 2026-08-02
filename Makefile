@@ -33,11 +33,6 @@ CFLAGS += -DCOMPLETE_FILE_NAMES   # File names.
 
 CFLAGS += -DSAVE_RESULTS
 
-# Comment out to disable escaping of strings.  This affects both
-# luap_describe and string results printed out by the prompt.
-
-CFLAGS += -DESCAPE_STRINGS
-
 # The name of the table holding the results can be configured below.
 
 CFLAGS += '-DRESULTS_TABLE_NAME="_"'

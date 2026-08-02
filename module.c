@@ -91,6 +91,11 @@ static void update_index (lua_State *L)
 
         luap_getcolor(L, &colorize);
         lua_pushboolean(L, colorize);
+    } else if (!strcmp(k, "escape_strings")) {
+        int escape_strings;
+
+        luap_getescape(L, &escape_strings);
+        lua_pushboolean(L, escape_strings);
     } else if (!strcmp(k, "history")) {
         const char *history;
 
@@ -148,6 +153,8 @@ static int prompt_newindex (lua_State *L)
         luap_setpromptfuncs(L);
     } else if (!strcmp(k, "colorize")) {
         luap_setcolor(L, lua_toboolean(L, 3));
+    } else if (!strcmp(k, "escape_strings")) {
+        luap_setescape(L, lua_toboolean(L, 3));
     } else if (!strcmp(k, "history")) {
         luap_sethistory(L, lua_tostring(L, 3));
     } else if (!strcmp(k, "name")) {
@@ -232,6 +239,9 @@ int luaopen_prompt(lua_State* L) {
     update_index(L);
 
     lua_pushliteral(L, "colorize");
+    update_index(L);
+
+    lua_pushliteral(L, "escape_strings");
     update_index(L);
 
     lua_pushliteral(L, "history");

@@ -115,7 +115,6 @@ build = {
                 "COMPLETE_FILE_NAMES",
                 "COMPLETE_MODULES",
                 "SAVE_RESULTS",
-                "ESCAPE_STRINGS",
                 'RESULTS_TABLE_NAME=\"_\"',
             },
 
