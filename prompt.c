@@ -142,6 +142,9 @@ static void display_matches (char **matches, int num_matches, int max_length)
 static char *keyword_completions (const char *text, int state)
 {
     static const char **c, *keywords[] = {
+#if LUA_VERSION_NUM == 505
+        "global",
+#endif
 #if LUA_VERSION_NUM == 502
         "goto",
 #endif
@@ -1547,7 +1550,6 @@ void luap_getpromptfuncs(lua_State *L)
     for (i = 0 ; i < 2 ; i += 1) {
         lua_rawgeti (L, LUA_REGISTRYINDEX, prompt_funcs[i]);
     }
-
 }
 
 void luap_gethistory(lua_State *L, const char **file)
